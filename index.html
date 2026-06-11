@@ -558,25 +558,53 @@ function bdg(e){
 
 function rendPR(fil,bus){
   var d=PR.slice().reverse();
-  if(fil&&fil!=='todos')d=d.filter(function(p){return p.est===fil;});
-  if(bus)d=d.filter(function(p){return p.cli.toLowerCase().indexOf(bus.toLowerCase())!==-1;});
-  var h='';
-  if(d.length){
-    h='<table><tr><th>N</th><th>Fecha</th><th>Cliente</th><th>Estado</th><th>Mon</th><th style="text-align:right">Precio</th><th>Cambiar estado</th></tr>';
-    for(var i=0;i<d.length;i++){
-      var p=d[i];
-      var es='display:inline-flex;align-items:center;padding:3px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:0.5px solid;font-family:var(--sans);background:var(--wht);';
-      var bg=p.est==='Ganada'?'<button style="'+es+'color:#3B6030;border-color:#B0C8A8;background:#E8EDE8" disabled>Ganada</button>'
-        :'<button style="'+es+'color:#3B6030;border-color:#B0C8A8" onclick="cambiarEstado(''+p.nro+'','Ganada')">Ganada</button>';
-      var bp=p.est==='Perdida'?'<button style="'+es+'color:#9A4030;border-color:#F0B0A0;background:#FCEAE6" disabled>Perdida</button>'
-        :'<button style="'+es+'color:#9A4030;border-color:#F0B0A0" onclick="cambiarEstado(''+p.nro+'','Perdida')">Perdida</button>';
-      var be=p.est==='En espera'?'<button style="'+es+'color:#8A6820;border-color:#E0C878;background:#FAF3E0" disabled>En espera</button>'
-        :'<button style="'+es+'color:#8A6820;border-color:#E0C878" onclick="cambiarEstado(''+p.nro+'','En espera')">En espera</button>';
-      h+='<tr><td style="font-size:11px;color:var(--gry)">'+p.nro+'</td><td>'+p.fecha+'</td><td style="font-weight:500">'+p.cli+'</td><td>'+bdg(p.est)+'</td><td style="font-size:11px">'+p.mon+'</td><td style="text-align:right;font-family:var(--serif);font-size:14px">'+p.precio.toLocaleString()+'</td><td><div style="display:flex;gap:4px">'+bg+bp+be+'</div></td></tr>';
-    }
-    h+='</table>';
-  }else{h='<div style="text-align:center;padding:28px;color:var(--gry)">Sin resultados</div>';}
-  document.getElementById('ptab').innerHTML=h;
+  if(fil&&fil!=='todos') d=d.filter(function(p){return p.est===fil;});
+  if(bus) d=d.filter(function(p){return p.cli.toLowerCase().indexOf(bus.toLowerCase())!==-1;});
+  var tab=document.getElementById('ptab');
+  if(!d.length){tab.innerHTML='<div style="text-align:center;padding:28px;color:var(--gry)">Sin resultados</div>';return;}
+  var tbl=document.createElement('table');
+  var hdr=tbl.insertRow();
+  ['N','Fecha','Cliente','Estado','Mon','Precio','Cambiar estado'].forEach(function(h){
+    var th=document.createElement('th');th.textContent=h;
+    if(h==='Precio')th.style.textAlign='right';
+    hdr.appendChild(th);
+  });
+  d.forEach(function(p){
+    var tr=tbl.insertRow();
+    var cells=[
+      {t:p.nro,s:'font-size:11px;color:var(--gry)'},
+      {t:p.fecha,s:''},
+      {t:p.cli,s:'font-weight:500'},
+      {t:'',s:'',bdg:p.est},
+      {t:p.mon,s:'font-size:11px'},
+      {t:p.precio.toLocaleString(),s:'text-align:right;font-family:var(--serif);font-size:14px'}
+    ];
+    cells.forEach(function(c){
+      var td=tr.insertCell();
+      td.style.cssText=c.s||'';
+      if(c.bdg){td.innerHTML=bdg(c.bdg);}
+      else{td.textContent=c.t;}
+    });
+    var tdBtn=tr.insertCell();
+    var wrap=document.createElement('div');
+    wrap.style.cssText='display:flex;gap:4px;flex-wrap:nowrap';
+    [['Ganada','#3B6030','#B0C8A8','#E8EDE8'],
+     ['Perdida','#9A4030','#F0B0A0','#FCEAE6'],
+     ['En espera','#8A6820','#E0C878','#FAF3E0']].forEach(function(cfg){
+      var lbl=cfg[0],col=cfg[1],bdr=cfg[2],bg=cfg[3];
+      var btn=document.createElement('button');
+      btn.textContent=lbl;
+      var active=p.est===lbl;
+      btn.style.cssText='display:inline-flex;align-items:center;padding:3px 9px;border-radius:5px;font-size:11px;border:0.5px solid '+bdr+';font-family:var(--sans);cursor:'+(active?'default':'pointer')+';color:'+col+';background:'+(active?bg:'var(--wht)')+';';
+      btn.disabled=active;
+      if(!active){
+        btn.onclick=(function(nro,est){return function(){cambiarEstado(nro,est);};})(p.nro,lbl);
+      }
+      wrap.appendChild(btn);
+    });
+    tdBtn.appendChild(wrap);
+  });
+  tab.innerHTML='';tab.appendChild(tbl);
 }
 function filtP(f){rendPR(f,document.getElementById('psrch').value);}
 
