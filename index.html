@@ -259,7 +259,8 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
           <table class="itbl">
             <thead><tr>
               <th>Tipo</th><th>Ambiente</th><th>Cant</th><th>Ancho(m)</th><th>Alto(m)</th><th>m2</th>
-              <th>Tipo Vidrio</th><th>Esp(mm)</th><th>Costo USD (auto)</th><th>Precio USD (manual)</th><th></th>
+              <th>Producto</th><th>Color</th><th>Esp(mm)</th><th>Modalidad</th><th>Sub</th>
+              <th>Costo USD</th><th>Precio USD</th><th></th>
             </tr></thead>
             <tbody id="itb"></tbody>
           </table>
@@ -443,12 +444,19 @@ async function loadCO(){
     var r=rows[i];
     if(!r[0]) continue;
     var cod=r[0].toString();
-    var precio=parseFloat((r[4]||'').toString().replace(/[^0-9.]/g,''));
-    if(!precio) continue;
-    var sec='Cortado a medida';
-    if(cod.indexOf('H-')===0) sec='En hoja';
-    if(cod.indexOf('PTX-')===0) sec='Protex';
-    CO.push({cod:cod,prod:r[1]||'',col:r[2]||'',esp:r[3]||'',precio:precio,sec:sec});
+    var precioE=parseFloat((r[4]||'').toString().replace(/[^0-9.]/g,''))||0;
+    var precioF=parseFloat((r[5]||'').toString().replace(/[^0-9.]/g,''))||0;
+    if(!precioE && !precioF) continue;
+    var sec='medida';
+    if(cod.indexOf('H-')===0) sec='hoja';
+    if(cod.indexOf('PTX-')===0) sec='protex';
+    CO.push({
+      cod:cod, prod:r[1]||'', col:r[2]||'', esp:r[3]||'',
+      precio:precioE,
+      precioBaja:precioE,
+      precioAlta:precioF||precioE,
+      sec:sec
+    });
   }
   rendCO();
 }
@@ -577,16 +585,33 @@ function rendGS(){
 function rendCO(){
   var h='';
   if(CO.length){
-    var secs=['Cortado a medida','En hoja','Protex'];
+    var secs=[
+      {key:'medida',label:'Seccion 1 - Cortado a medida',sub:'Serolux corta al tamano exacto. Precio USD/m2.'},
+      {key:'hoja',label:'Seccion 2 - En hoja (a fason)',sub:'Bidart compra la hoja entera. Precio BAJA y ALTA segun tamano.'},
+      {key:'protex',label:'Seccion 3 - Protex',sub:'Vidrio de seguridad. Precio USD/m2.'}
+    ];
     for(var s=0;s<secs.length;s++){
-      var sec=secs[s];
-      var rows=CO.filter(function(c){return c.sec===sec;});
+      var sk=secs[s].key;
+      var rows=CO.filter(function(c){return c.sec===sk;});
       if(!rows.length) continue;
       h+='<div style="margin-bottom:24px">';
-      h+='<div style="font-family:var(--serif);font-size:15px;color:var(--blk);padding:10px 12px;background:var(--sage-pl);border-radius:6px;margin-bottom:8px">'+sec+'</div>';
-      h+='<table><tr><th>Codigo</th><th>Producto</th><th>Color</th><th>Espesor</th><th style="text-align:right">USD/m2</th></tr>';
-      for(var i=0;i<rows.length;i++){var c=rows[i];
-        h+='<tr><td style="font-size:11px;color:var(--gry)">'+c.cod+'</td><td style="font-weight:500">'+c.prod+'</td><td>'+c.col+'</td><td>'+c.esp+' mm</td><td style="text-align:right;font-family:var(--serif);color:var(--sage-dkr);font-size:14px">$'+c.precio+'</td></tr>';
+      h+='<div style="padding:10px 14px;background:var(--sage-pl);border-radius:6px;margin-bottom:8px">';
+      h+='<div style="font-family:var(--serif);font-size:15px;color:var(--blk)">'+secs[s].label+'</div>';
+      h+='<div style="font-size:11px;color:var(--gry);margin-top:2px">'+secs[s].sub+'</div>';
+      h+='</div>';
+      if(sk==='hoja'){
+        h+='<table><tr><th>Codigo</th><th>Producto</th><th>Color</th><th>Espesor</th><th style="text-align:right">Precio Baja (USD/m2)</th><th style="text-align:right">Precio Alta (USD/m2)</th></tr>';
+        for(var i=0;i<rows.length;i++){var c=rows[i];
+          h+='<tr><td style="font-size:11px;color:var(--gry)">'+c.cod+'</td><td style="font-weight:500">'+c.prod+'</td><td>'+c.col+'</td><td>'+c.esp+' mm</td>';
+          h+='<td style="text-align:right;font-family:var(--serif);color:var(--sage-dkr)">$'+c.precioBaja+'</td>';
+          h+='<td style="text-align:right;font-family:var(--serif);color:var(--ambar)">$'+(c.precioAlta||'-')+'</td></tr>';
+        }
+      } else {
+        h+='<table><tr><th>Codigo</th><th>Producto</th><th>Color</th><th>Espesor</th><th style="text-align:right">USD/m2</th></tr>';
+        for(var i=0;i<rows.length;i++){var c=rows[i];
+          h+='<tr><td style="font-size:11px;color:var(--gry)">'+c.cod+'</td><td style="font-weight:500">'+c.prod+'</td><td>'+c.col+'</td><td>'+c.esp+' mm</td>';
+          h+='<td style="text-align:right;font-family:var(--serif);color:var(--sage-dkr);font-size:14px">$'+c.precio+'</td></tr>';
+        }
       }
       h+='</table></div>';
     }
@@ -652,7 +677,7 @@ async function guardarGasto(){
 
 function addItem(){
   IID++;
-  IT.push({id:IID,tipo:'Espejo',amb:'',cant:1,ancho:0,alto:0,tvid:'Comun',esp:'5',costo:0,precio:0,auto:false});
+  IT.push({id:IID,tipo:'Espejo',amb:'',cant:1,ancho:0,alto:0,prod:'Espejo',col:'Incoloro',esp:'5',mod:'medida',submod:'baja',costo:0,precio:0,auto:false});
   rendIT();
 }
 
@@ -666,56 +691,82 @@ function setItem(id,f,v){
   rendIT();
 }
 
+function buscarCosto(prod,col,esp,mod,submod){
+  // prod: 'Espejo','Cristal','Laminado', etc.
+  // col: 'Incoloro','Color','Opacid','Extra Claro','Rayado','Armado','Difuso'
+  // esp: '5','6', etc.
+  // mod: 'medida','hoja','protex'
+  // submod: 'baja','alta' (solo para hoja)
+  for(var i=0;i<CO.length;i++){
+    var c=CO[i];
+    if(c.sec!==mod) continue;
+    if(c.prod.toLowerCase()!==prod.toLowerCase()) continue;
+    if(c.col.toLowerCase()!==col.toLowerCase()) continue;
+    if(c.esp.toString()!==esp.toString()) continue;
+    if(mod==='hoja'){
+      return submod==='alta' ? c.precioAlta : c.precioBaja;
+    }
+    return c.precio;
+  }
+  return 0;
+}
+
 function calcAuto(){
   TC=parseFloat(document.getElementById('tc').value)||43;
   PE=parseFloat(document.getElementById('pesp').value)||3500;
   var BORDE=2;
   var TEMPLADO=15;
-  // Remove previously auto-generated lines
   IT=IT.filter(function(x){return !x.auto;});
   var newLines=[];
   for(var i=0;i<IT.length;i++){
     var it=IT[i];
     var m2=it.cant*(it.ancho||0)*(it.alto||0);
     var perim=it.cant*2*((it.ancho||0)+(it.alto||0));
-    if(it.tipo==='Espejo'&&it.ancho&&it.alto){
-      // Costo espejo: vidrio + perfileria
-      var costoVidrio=(it.ancho*it.alto*PE)/TC;
-      var costoPerf=(1000*it.cant)/TC;
-      it.costo=Math.round((costoVidrio+costoPerf)*100)/100;
-      // Linea borde pulido
+    if(!it.ancho||!it.alto) continue;
+
+    if(it.tipo==='Espejo'){
+      if(it.mod==='medida'||it.mod==='hoja'){
+        // Buscar precio en tabla
+        var pTabla=buscarCosto(it.prod,it.col,it.esp,it.mod,it.submod);
+        if(pTabla){
+          it.costo=Math.round(pTabla*m2*100)/100;
+        } else {
+          // Fallback formula 3500 UYU/m2
+          var costoVidrio=(it.ancho*it.alto*PE)/TC;
+          var costoPerf=(1000*it.cant)/TC;
+          it.costo=Math.round((costoVidrio+costoPerf)*100)/100;
+        }
+      } else {
+        var costoVidrio=(it.ancho*it.alto*PE)/TC;
+        var costoPerf=(1000*it.cant)/TC;
+        it.costo=Math.round((costoVidrio+costoPerf)*100)/100;
+      }
       IID++;
-      newLines.push({id:IID,tipo:'Borde pulido',amb:it.amb+' (espejo)',cant:it.cant,
-        ancho:Math.round((2*(it.ancho+it.alto))*100)/100,alto:0,tvid:'-',esp:'-',
-        costo:BORDE,precio:0,auto:true,desc:'2 USD/ml x '+Math.round(perim*100)/100+' ml'});
-    } else if(it.tipo==='Mampara'&&it.ancho&&it.alto){
-      // Costo mampara: buscar en tabla de costos
-      var f=null;
-      for(var j=0;j<CO.length;j++){if(CO[j].esp===it.esp){f=CO[j];break;}}
-      it.costo=f?Math.round(f.precio*m2*100)/100:0;
-      // Linea templado
+      newLines.push({id:IID,tipo:'Borde pulido',amb:it.amb,cant:1,
+        ancho:Math.round(perim*100)/100,alto:0,prod:'-',col:'-',esp:'-',mod:'-',submod:'',
+        costo:Math.round(BORDE*perim*100)/100,precio:0,auto:true,parentId:it.id,
+        desc:'2 USD/ml x '+Math.round(perim*100)/100+' ml'});
+
+    } else if(it.tipo==='Mampara'){
+      var pMamp=buscarCosto(it.prod,it.col,it.esp,it.mod,it.submod);
+      it.costo=pMamp?Math.round(pMamp*m2*100)/100:0;
       IID++;
-      newLines.push({id:IID,tipo:'Templado',amb:it.amb+' (mampara)',cant:it.cant,
-        ancho:it.ancho,alto:it.alto,tvid:'Templado',esp:it.esp,
-        costo:Math.round(TEMPLADO*m2*100)/100,precio:0,auto:true,
+      newLines.push({id:IID,tipo:'Templado',amb:it.amb,cant:it.cant,
+        ancho:it.ancho,alto:it.alto,prod:it.prod,col:it.col,esp:it.esp,mod:'-',submod:'',
+        costo:Math.round(TEMPLADO*m2*100)/100,precio:0,auto:true,parentId:it.id,
         desc:'15 USD/m2 x '+m2.toFixed(2)+' m2'});
-      // Linea borde pulido
       IID++;
-      newLines.push({id:IID,tipo:'Borde pulido',amb:it.amb+' (mampara)',cant:it.cant,
-        ancho:Math.round((2*(it.ancho+it.alto))*100)/100,alto:0,tvid:'-',esp:'-',
-        costo:Math.round(BORDE*perim*100)/100,precio:0,auto:true,
+      newLines.push({id:IID,tipo:'Borde pulido',amb:it.amb,cant:1,
+        ancho:Math.round(perim*100)/100,alto:0,prod:'-',col:'-',esp:'-',mod:'-',submod:'',
+        costo:Math.round(BORDE*perim*100)/100,precio:0,auto:true,parentId:it.id,
         desc:'2 USD/ml x '+Math.round(perim*100)/100+' ml'});
     }
   }
-  // Insert auto lines after their parent item
   var finalIT=[];
   for(var i=0;i<IT.length;i++){
     finalIT.push(IT[i]);
-    // Find auto lines for this item (by ambient name)
     for(var j=0;j<newLines.length;j++){
-      if(newLines[j].amb.indexOf(IT[i].amb)===0){
-        finalIT.push(newLines[j]);
-      }
+      if(newLines[j].parentId===IT[i].id) finalIT.push(newLines[j]);
     }
   }
   IT=finalIT;
@@ -727,58 +778,92 @@ function rendIT(){
   var tbody=document.getElementById('itb');
   tbody.innerHTML='';
   var total=0;
+  var PRODS=['Cristal','Espejo','Laminado','Fantasia','Solarcool','Protex'];
+  var COLS=['Incoloro','Color','Opacid','Extra Claro','Rayado','Armado','Difuso'];
+  var ESPS=['2','3','4','5','6','8','10','12','15','19','3+3','4+4','5+5','6+6'];
   for(var i=0;i<IT.length;i++){
     var it=IT[i];
     var m2=it.cant*(it.ancho||0)*(it.alto||0);
     total+=it.precio||0;
     var tr=document.createElement('tr');
     if(it.auto)tr.className='auto-row';
-    // Tipo
-    if(it.auto){
-      tr.appendChild(mkTd(it.tipo,'font-weight:500;color:var(--sage-dkr)'));
-    }else{
-      tr.appendChild(mkSel(it.id,'tipo',it.tipo,['Espejo','Mampara','Baranda'],'90px'));
-    }
-    // Ambiente
-    if(it.auto){tr.appendChild(mkTd(it.amb,'color:var(--gry);font-size:11px'));}
-    else{tr.appendChild(mkInp(it.id,'amb',it.amb,'text','80px','Bano, living...'));}
-    // Cant
-    if(it.auto){tr.appendChild(mkTd(it.cant,'text-align:center'));}
+
+    if(it.auto){tr.appendChild(mkTd(it.tipo,'font-weight:500;color:var(--sage-dkr)'));}
+    else{tr.appendChild(mkSel(it.id,'tipo',it.tipo,['Espejo','Mampara','Baranda','Otro'],'85px'));}
+
+    if(it.auto){tr.appendChild(mkTd(it.desc||it.amb,'color:var(--gry);font-size:11px;font-style:italic'));}
+    else{tr.appendChild(mkInp(it.id,'amb',it.amb,'text','80px','Ambiente'));}
+
+    if(it.auto){tr.appendChild(mkTd(it.cant,'text-align:center;color:var(--gry)'));}
     else{tr.appendChild(mkInp(it.id,'cant',it.cant,'number','40px',''));}
-    // Ancho
-    if(it.auto){tr.appendChild(mkTd(it.ancho>0?it.ancho:'','text-align:center;color:var(--gry)'));}
+
+    if(it.auto){tr.appendChild(mkTd(it.ancho>0?it.ancho+'':'-','text-align:center;color:var(--gry)'));}
     else{tr.appendChild(mkInp(it.id,'ancho',it.ancho||'','number','55px',''));}
-    // Alto
-    if(it.auto){tr.appendChild(mkTd('',''));}
+
+    if(it.auto){tr.appendChild(mkTd('-','color:var(--gry)'));}
     else{tr.appendChild(mkInp(it.id,'alto',it.alto||'','number','55px',''));}
-    // m2
+
     tr.appendChild(mkTd(m2>0?m2.toFixed(2):'-','text-align:center'));
-    // Tipo vidrio
-    if(it.auto){tr.appendChild(mkTd(it.tvid,'color:var(--gry)'));}
-    else{tr.appendChild(mkSel2(['Comun','Templado','Laminado','Espejo'],'90px'));}
-    // Espesor
-    if(it.auto){tr.appendChild(mkTd(it.esp,'color:var(--gry)'));}
-    else{tr.appendChild(mkSel(it.id,'esp',it.esp,['5','6','8','10'],'55px'));}
-    // Costo (auto calculado - readonly)
-    var costoTd=document.createElement('td');
-    costoTd.style.cssText='text-align:right;color:var(--sage-dkr);font-weight:500';
-    costoTd.textContent=it.costo>0?'$ '+it.costo.toFixed(2):'-';
-    tr.appendChild(costoTd);
-    // Precio (manual)
+
+    if(it.auto){tr.appendChild(mkTd(it.prod||'-','color:var(--gry)'));}
+    else{tr.appendChild(mkSel(it.id,'prod',it.prod||'Cristal',PRODS,'90px'));}
+
+    if(it.auto){tr.appendChild(mkTd(it.col||'-','color:var(--gry)'));}
+    else{tr.appendChild(mkSel(it.id,'col',it.col||'Incoloro',COLS,'90px'));}
+
+    if(it.auto){tr.appendChild(mkTd(it.esp||'-','color:var(--gry)'));}
+    else{tr.appendChild(mkSel(it.id,'esp',it.esp||'6',ESPS,'60px'));}
+
     if(it.auto){
-      tr.appendChild(mkTd('-','text-align:right;color:var(--gry)'));
-    }else{
+      tr.appendChild(mkTd('-','color:var(--gry)'));
+      tr.appendChild(mkTd('-','color:var(--gry)'));
+    } else {
+      var modTd=document.createElement('td');
+      var modSel=document.createElement('select');modSel.style.width='80px';
+      var modOpts=['medida','hoja','protex'];
+      var modLbls=['A medida','A fason','Protex'];
+      for(var j=0;j<modOpts.length;j++){
+        var op=document.createElement('option');
+        op.value=modOpts[j];op.textContent=modLbls[j];
+        if(modOpts[j]===(it.mod||'medida'))op.selected=true;
+        modSel.appendChild(op);
+      }
+      modSel.onchange=(function(id){return function(){setItem(id,'mod',this.value);};})(it.id);
+      modTd.appendChild(modSel);tr.appendChild(modTd);
+
+      if((it.mod||'medida')==='hoja'){
+        var sTd=document.createElement('td');
+        var sSel=document.createElement('select');sSel.style.width='60px';
+        ['baja','alta'].forEach(function(sv){
+          var op=document.createElement('option');op.value=sv;op.textContent=sv;
+          if(sv===(it.submod||'baja'))op.selected=true;
+          sSel.appendChild(op);
+        });
+        sSel.onchange=(function(id){return function(){setItem(id,'submod',this.value);};})(it.id);
+        sTd.appendChild(sSel);tr.appendChild(sTd);
+      } else {
+        tr.appendChild(mkTd('-','color:var(--gry);font-size:11px'));
+      }
+    }
+
+    var cTd=document.createElement('td');
+    cTd.style.cssText='text-align:right;color:var(--sage-dkr);font-weight:500;white-space:nowrap';
+    cTd.textContent=it.costo>0?'$ '+it.costo.toFixed(2):'-';
+    tr.appendChild(cTd);
+
+    if(it.auto){tr.appendChild(mkTd('-','text-align:right;color:var(--gry)'));}
+    else{
       var pTd=document.createElement('td');
       var pInp=document.createElement('input');
       pInp.type='number';pInp.value=it.precio||'';pInp.style.width='80px';
-      pInp.placeholder='0.00';pInp.step='0.01';
-      pInp.style.fontWeight='500';pInp.style.color='var(--blk)';
+      pInp.placeholder='0.00';pInp.step='0.01';pInp.style.fontWeight='500';
       pInp.onchange=(function(id){return function(){setItem(id,'precio',+this.value);};})(it.id);
       pTd.appendChild(pInp);tr.appendChild(pTd);
     }
-    // Eliminar
+
     if(it.auto){tr.appendChild(mkTd('',''));}
     else{tr.appendChild(mkDel(it.id));}
+
     tbody.appendChild(tr);
   }
   document.getElementById('tot').textContent='$ '+Math.round(total).toLocaleString()+' USD';
