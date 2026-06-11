@@ -312,14 +312,48 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
     <div class="sc" id="sc-gastos">
       <div class="qc">
         <div style="font-family:var(--serif);font-size:16px;margin-bottom:14px">Registrar gasto</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 2fr 1fr 1fr 1fr auto;gap:10px;align-items:end">
-          <div class="fg"><label class="fl">Fecha</label><input type="date" id="gf"></div>
-          <div class="fg"><label class="fl">Obra</label><select id="go2"></select></div>
-          <div class="fg"><label class="fl">Descripcion</label><input type="text" id="gd" placeholder="Materiales..."></div>
-          <div class="fg"><label class="fl">Categoria</label><select id="gc"><option>Materiales</option><option>Mano de obra</option><option>Flete</option><option>Herrajes</option><option>Otros</option></select></div>
-          <div class="fg"><label class="fl">Moneda</label><select id="gm"><option>UYU</option><option>USD</option></select></div>
-          <div class="fg"><label class="fl">Monto</label><input type="number" id="gmo" placeholder="0.00"></div>
-          <div class="fg"><label class="fl"> </label><button class="btn btn-p" style="height:41px" onclick="guardarGasto()">Guardar</button></div>
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <button class="btn" id="gtab-solo" onclick="setGastoMode('solo')" style="border-color:var(--sage-dkr);color:var(--sage-dkr)">A una obra</button>
+          <button class="btn" id="gtab-comp" onclick="setGastoMode('comp')">Compartido</button>
+          <button class="btn" id="gtab-gen"  onclick="setGastoMode('gen')">Gasto general</button>
+        </div>
+
+        <div id="gform-solo">
+          <div style="display:grid;grid-template-columns:1fr 1fr 2fr 1fr 1fr 1fr auto;gap:10px;align-items:end">
+            <div class="fg"><label class="fl">Fecha</label><input type="date" id="gf"></div>
+            <div class="fg"><label class="fl">Obra</label><select id="go2"></select></div>
+            <div class="fg"><label class="fl">Descripcion</label><input type="text" id="gd" placeholder="Materiales..."></div>
+            <div class="fg"><label class="fl">Categoria</label><select id="gc"><option>Materiales</option><option>Mano de obra</option><option>Flete</option><option>Herrajes</option><option>Otros</option></select></div>
+            <div class="fg"><label class="fl">Moneda</label><select id="gm"><option>UYU</option><option>USD</option></select></div>
+            <div class="fg"><label class="fl">Monto</label><input type="number" id="gmo" placeholder="0.00"></div>
+            <div class="fg"><label class="fl"> </label><button class="btn btn-p" style="height:41px" onclick="guardarGasto()">Guardar</button></div>
+          </div>
+        </div>
+
+        <div id="gform-comp" style="display:none">
+          <div style="display:grid;grid-template-columns:1fr 2fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px;align-items:end">
+            <div class="fg"><label class="fl">Fecha</label><input type="date" id="gcf"></div>
+            <div class="fg"><label class="fl">Descripcion</label><input type="text" id="gcd" placeholder="Materiales compartidos..."></div>
+            <div class="fg"><label class="fl">Categoria</label><select id="gcc"><option>Materiales</option><option>Mano de obra</option><option>Flete</option><option>Herrajes</option><option>Otros</option></select></div>
+            <div class="fg"><label class="fl">Moneda</label><select id="gcm"><option>UYU</option><option>USD</option></select></div>
+            <div class="fg"><label class="fl">Monto total</label><input type="number" id="gcmo" placeholder="0.00" oninput="updCompPct()"></div>
+          </div>
+          <div style="font-size:12px;color:var(--gry);margin-bottom:8px;font-weight:500;text-transform:uppercase;letter-spacing:1px">Distribucion por obra</div>
+          <div id="comp-obras" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
+          <button class="btn" onclick="addCompObra()" style="font-size:12px">+ Agregar obra</button>
+          <button class="btn btn-p" onclick="guardarGastoComp()" style="margin-left:8px">Guardar distribucion</button>
+        </div>
+
+        <div id="gform-gen" style="display:none">
+          <div style="display:grid;grid-template-columns:1fr 2fr 1fr 1fr 1fr auto;gap:10px;align-items:end">
+            <div class="fg"><label class="fl">Fecha</label><input type="date" id="ggf"></div>
+            <div class="fg"><label class="fl">Descripcion</label><input type="text" id="ggd" placeholder="Herramienta, viaje, admin..."></div>
+            <div class="fg"><label class="fl">Categoria</label><select id="ggc"><option>Herramientas</option><option>Transporte</option><option>Admin</option><option>Otros</option></select></div>
+            <div class="fg"><label class="fl">Moneda</label><select id="ggm"><option>UYU</option><option>USD</option></select></div>
+            <div class="fg"><label class="fl">Monto</label><input type="number" id="ggmo" placeholder="0.00"></div>
+            <div class="fg"><label class="fl"> </label><button class="btn btn-p" style="height:41px" onclick="guardarGastoGen()">Guardar</button></div>
+          </div>
+          <div style="font-size:11px;color:var(--gry);margin-top:8px">Este gasto queda como gasto general del negocio (obra = GENERAL).</div>
         </div>
       </div>
       <div class="card"><div style="font-family:var(--serif);font-size:16px;margin-bottom:14px">Gastos registrados</div><div id="gtab"><div class="spin-w"><div class="spin"></div>Cargando...</div></div></div>
@@ -351,6 +385,8 @@ window.onload=function(){
   var h=new Date().toISOString().split('T')[0];
   document.getElementById('vf').value=h;
   document.getElementById('gf').value=h;
+  document.getElementById('gcf').value=h;
+  document.getElementById('ggf').value=h;
 };
 
 function iniciarLogin(){
@@ -526,15 +562,41 @@ function rendPR(fil,bus){
   if(bus)d=d.filter(function(p){return p.cli.toLowerCase().indexOf(bus.toLowerCase())!==-1;});
   var h='';
   if(d.length){
-    h='<table><tr><th>N</th><th>Fecha</th><th>Cliente</th><th>Estado</th><th>Mon</th><th style="text-align:right">Precio</th></tr>';
-    for(var i=0;i<d.length;i++){var p=d[i];
-      h+='<tr><td style="font-size:11px;color:var(--gry)">'+p.nro+'</td><td>'+p.fecha+'</td><td style="font-weight:500">'+p.cli+'</td><td>'+bdg(p.est)+'</td><td style="font-size:11px">'+p.mon+'</td><td style="text-align:right;font-family:var(--serif)">'+p.precio.toLocaleString()+'</td></tr>';
+    h='<table><tr><th>N</th><th>Fecha</th><th>Cliente</th><th>Estado</th><th>Mon</th><th style="text-align:right">Precio</th><th>Cambiar estado</th></tr>';
+    for(var i=0;i<d.length;i++){
+      var p=d[i];
+      var es='display:inline-flex;align-items:center;padding:3px 9px;border-radius:5px;font-size:11px;cursor:pointer;border:0.5px solid;font-family:var(--sans);background:var(--wht);';
+      var bg=p.est==='Ganada'?'<button style="'+es+'color:#3B6030;border-color:#B0C8A8;background:#E8EDE8" disabled>Ganada</button>'
+        :'<button style="'+es+'color:#3B6030;border-color:#B0C8A8" onclick="cambiarEstado(''+p.nro+'','Ganada')">Ganada</button>';
+      var bp=p.est==='Perdida'?'<button style="'+es+'color:#9A4030;border-color:#F0B0A0;background:#FCEAE6" disabled>Perdida</button>'
+        :'<button style="'+es+'color:#9A4030;border-color:#F0B0A0" onclick="cambiarEstado(''+p.nro+'','Perdida')">Perdida</button>';
+      var be=p.est==='En espera'?'<button style="'+es+'color:#8A6820;border-color:#E0C878;background:#FAF3E0" disabled>En espera</button>'
+        :'<button style="'+es+'color:#8A6820;border-color:#E0C878" onclick="cambiarEstado(''+p.nro+'','En espera')">En espera</button>';
+      h+='<tr><td style="font-size:11px;color:var(--gry)">'+p.nro+'</td><td>'+p.fecha+'</td><td style="font-weight:500">'+p.cli+'</td><td>'+bdg(p.est)+'</td><td style="font-size:11px">'+p.mon+'</td><td style="text-align:right;font-family:var(--serif);font-size:14px">'+p.precio.toLocaleString()+'</td><td><div style="display:flex;gap:4px">'+bg+bp+be+'</div></td></tr>';
     }
     h+='</table>';
   }else{h='<div style="text-align:center;padding:28px;color:var(--gry)">Sin resultados</div>';}
   document.getElementById('ptab').innerHTML=h;
 }
 function filtP(f){rendPR(f,document.getElementById('psrch').value);}
+
+async function cambiarEstado(nro,nuevoEst){
+  var rows=await apiGet('📊 Presupuestos!A7:G500');
+  var rowIdx=-1;
+  for(var i=0;i<rows.length;i++){
+    if(rows[i][0]&&rows[i][0].toString()===nro){rowIdx=i+7;break;}
+  }
+  if(rowIdx===-1){toast('Presupuesto no encontrado');return;}
+  var url='https://sheets.googleapis.com/v4/spreadsheets/'+SID+'/values/'
+    +encodeURIComponent('📊 Presupuestos!G'+rowIdx+':G'+rowIdx)
+    +'?valueInputOption=USER_ENTERED';
+  var r=await fetch(url,{method:'PUT',
+    headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
+    body:JSON.stringify({values:[[nuevoEst]]})});
+  if(!r.ok){toast('Error al actualizar');return;}
+  await loadPR();
+  toast('Estado: '+nuevoEst);
+}
 
 function rendOB(){
   var div=document.getElementById('olst');
@@ -662,6 +724,101 @@ async function guardarGasto(){
     document.getElementById('gd').value='';
     await loadGS();updDash();
     toast('Gasto guardado OK');
+  }catch(e){toast('Error: '+e.message);}
+}
+
+var compObras=[];
+
+function setGastoMode(mode){
+  document.getElementById('gform-solo').style.display=mode==='solo'?'block':'none';
+  document.getElementById('gform-comp').style.display=mode==='comp'?'block':'none';
+  document.getElementById('gform-gen').style.display=mode==='gen'?'block':'none';
+  var modes=['solo','comp','gen'];
+  modes.forEach(function(m){
+    var btn=document.getElementById('gtab-'+m);
+    btn.style.borderColor=m===mode?'var(--sage-dkr)':'var(--gry-lt)';
+    btn.style.color=m===mode?'var(--sage-dkr)':'var(--blk)';
+  });
+}
+
+function addCompObra(){
+  var obras=[];
+  for(var i=0;i<OB.length;i++){if(OB[i].cod)obras.push(OB[i].cod);}
+  for(var i=0;i<VN.length;i++){if(VN[i].obra&&obras.indexOf(VN[i].obra)===-1)obras.push(VN[i].obra);}
+  var id='co'+Date.now();
+  compObras.push(id);
+  var div=document.getElementById('comp-obras');
+  var row=document.createElement('div');
+  row.id=id;
+  row.style.cssText='display:flex;gap:8px;align-items:center';
+  var sel=document.createElement('select');sel.id=id+'-obra';sel.style.flex='1';
+  obras.forEach(function(o){var op=document.createElement('option');op.value=o;op.textContent=o;sel.appendChild(op);});
+  var pctInp=document.createElement('input');
+  pctInp.type='number';pctInp.id=id+'-pct';pctInp.placeholder='%';pctInp.style.width='70px';
+  pctInp.oninput=function(){updCompPct();};
+  var span=document.createElement('span');span.id=id+'-monto';span.style.cssText='font-size:12px;color:var(--gry);min-width:70px';span.textContent='$ -';
+  var rem=document.createElement('button');rem.className='btn';rem.textContent='x';
+  rem.style.cssText='padding:4px 8px;color:var(--rojo)';
+  rem.onclick=(function(i){return function(){
+    compObras=compObras.filter(function(x){return x!==i;});
+    document.getElementById(i).remove();
+    updCompPct();
+  };})(id);
+  row.appendChild(sel);row.appendChild(pctInp);row.appendChild(span);row.appendChild(rem);
+  div.appendChild(row);
+  updCompPct();
+}
+
+function updCompPct(){
+  var total=parseFloat(document.getElementById('gcmo').value)||0;
+  var mon=document.getElementById('gcm').value;
+  compObras.forEach(function(id){
+    var pct=parseFloat((document.getElementById(id+'-pct')||{}).value)||0;
+    var monto=Math.round(total*pct/100*100)/100;
+    var sp=document.getElementById(id+'-monto');
+    if(sp)sp.textContent=mon+' '+monto.toFixed(2);
+  });
+}
+
+async function guardarGastoComp(){
+  var f=document.getElementById('gcf').value;
+  var d=document.getElementById('gcd').value;
+  var c=document.getElementById('gcc').value;
+  var m=document.getElementById('gcm').value;
+  var total=parseFloat(document.getElementById('gcmo').value)||0;
+  if(!f||!d||!total||!compObras.length){toast('Completa todos los campos y agrega obras');return;}
+  var fmt=f.split('-').reverse().join('/');
+  try{
+    for(var i=0;i<compObras.length;i++){
+      var id=compObras[i];
+      var ob=document.getElementById(id+'-obra').value;
+      var pct=parseFloat(document.getElementById(id+'-pct').value)||0;
+      var monto=Math.round(total*pct/100*100)/100;
+      if(!monto) continue;
+      await apiAdd('💰 Gastos',[GS.length+1,fmt,d+' ('+pct+'%)',ob,'-','-',c,m,monto]);
+    }
+    document.getElementById('gcmo').value='';
+    document.getElementById('gcd').value='';
+    compObras=[];document.getElementById('comp-obras').innerHTML='';
+    await loadGS();updDash();
+    toast('Gastos compartidos guardados OK');
+  }catch(e){toast('Error: '+e.message);}
+}
+
+async function guardarGastoGen(){
+  var f=document.getElementById('ggf').value;
+  var d=document.getElementById('ggd').value;
+  var c=document.getElementById('ggc').value;
+  var m=document.getElementById('ggm').value;
+  var mo=parseFloat(document.getElementById('ggmo').value)||0;
+  if(!f||!d||!mo){toast('Completa todos los campos');return;}
+  var fmt=f.split('-').reverse().join('/');
+  try{
+    await apiAdd('💰 Gastos',[GS.length+1,fmt,d,'GENERAL','-','-',c,m,mo]);
+    document.getElementById('ggmo').value='';
+    document.getElementById('ggd').value='';
+    await loadGS();updDash();
+    toast('Gasto general guardado OK');
   }catch(e){toast('Error: '+e.message);}
 }
 
@@ -911,6 +1068,7 @@ async function guardarPres(){
     await apiAdd('📊 Presupuestos',[nro,hoy,'',cli,'',ubi,'En espera',ven,'','',Math.round(total*100)/100,'USD',Math.round(total*100)/100,'']);
     IT=[];rendIT();await loadPR();
     toast('Presupuesto guardado OK');
+    go('pres');
   }catch(e){toast('Error: '+e.message);}
 }
 
