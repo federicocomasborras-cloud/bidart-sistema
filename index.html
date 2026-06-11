@@ -437,14 +437,31 @@ async function syncAll(){
 }
 
 async function loadPR(){
-  var rows=await apiGet('📊 Presupuestos!A7:N500');
-  PR=rows.filter(function(r){return r[0]&&r[0].toString().indexOf('PRES')===0;}).map(function(r){
-    return {nro:r[0]||'',fecha:r[1]||'',cli:r[3]||'',ubic:r[5]||'',
-            est:r[6]||'En espera',vend:r[7]||'',precio:n(r[10]),mon:r[11]||'USD'};
-  });
+  var rows=await apiGet('📊 Presupuestos!A11:N500');
+  var seen={};
+  PR=[];
+  for(var i=0;i<rows.length;i++){
+    var r=rows[i];
+    if(!r[0]||r[0].toString().indexOf('PRES')!==0) continue;
+    var nro=r[0].toString();
+    var cli=r[3]||'';
+    var est=r[6]||'En espera';
+    var precio=n(r[10]);
+    var mon=r[11]||'USD';
+    var fecha=r[1]||'';
+    seen[nro]={nro:nro,fecha:fecha,cli:cli,ubic:r[5]||'',
+               est:est,vend:r[7]||'',precio:precio,mon:mon};
+  }
+  PR=Object.keys(seen).map(function(k){return seen[k];});
+  PR.sort(function(a,b){return a.nro<b.nro?-1:a.nro>b.nro?1:0;});
   document.getElementById('bdg').textContent=PR.length;
   rendPR();
-  document.getElementById('cn').value='PRES-'+String(PR.length+1).padStart(3,'0');
+  var maxN=0;
+  PR.forEach(function(p){
+    var m=parseInt((p.nro||'').replace('PRES-',''))||0;
+    if(m>maxN)maxN=m;
+  });
+  document.getElementById('cn').value='PRES-'+String(maxN+1).padStart(3,'0');
 }
 
 async function loadVN(){
@@ -609,10 +626,10 @@ function rendPR(fil,bus){
 function filtP(f){rendPR(f,document.getElementById('psrch').value);}
 
 async function cambiarEstado(nro,nuevoEst){
-  var rows=await apiGet('📊 Presupuestos!A7:G500');
+  var rows=await apiGet('📊 Presupuestos!A11:G500');
   var rowIdx=-1;
   for(var i=0;i<rows.length;i++){
-    if(rows[i][0]&&rows[i][0].toString()===nro){rowIdx=i+7;break;}
+    if(rows[i][0]&&rows[i][0].toString()===nro){rowIdx=i+11;break;}
   }
   if(rowIdx===-1){toast('Presupuesto no encontrado');return;}
   var url='https://sheets.googleapis.com/v4/spreadsheets/'+SID+'/values/'
@@ -1085,6 +1102,8 @@ function mkDel(id){
 }
 
 async function guardarPres(silent){
+  var btn=document.querySelector('[onclick="guardarPres()"]');
+  if(btn){btn.disabled=true;btn.textContent='Guardando...';}
   var nro=document.getElementById('cn').value;
   var cli=document.getElementById('cc').value;
   var ubi=document.getElementById('cu').value;
@@ -1093,11 +1112,17 @@ async function guardarPres(silent){
   var total=IT.filter(function(x){return !x.auto;}).reduce(function(s,it){return s+(it.precio||0);},0);
   var hoy=new Date().toLocaleDateString('es-UY');
   try{
-    await apiAdd('📊 Presupuestos',[nro,hoy,'',cli,'',ubi,'En espera',ven,'','',Math.round(total*100)/100,'USD',Math.round(total*100)/100,'']);
+    var presUrl='https://sheets.googleapis.com/v4/spreadsheets/'+SID+'/values/'
+      +encodeURIComponent('📊 Presupuestos!A11')+':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS';
+    var presR=await fetch(presUrl,{method:'POST',
+      headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
+      body:JSON.stringify({values:[[nro,hoy,'',cli,'',ubi,'En espera',ven,'','',Math.round(total*100)/100,'USD',Math.round(total*100)/100,'']]})});
+    if(!presR.ok){var pt=await presR.text();throw new Error('HTTP '+presR.status+': '+pt.substring(0,100));}
     IT=[];rendIT();await loadPR();
     toast('Presupuesto guardado OK');
     if(!silent) go('pres');
   }catch(e){toast('Error: '+e.message);}
+  finally{if(btn){btn.disabled=false;btn.textContent='Guardar en Sheets';}}
 }
 
 async function genPDF(){
