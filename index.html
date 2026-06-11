@@ -101,7 +101,57 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
 .pgf{height:100%;background:var(--sage-dkr);border-radius:2px}
 .qc{background:var(--wht);border:var(--bdr);border-radius:10px;padding:18px;margin-bottom:16px}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--sage);border-radius:2px}
-</style>
+
+@media (max-width: 768px) {
+  body{background:var(--sage-pl)}
+  #app{flex-direction:column;height:100vh;overflow:hidden}
+  .sb{width:100%;height:auto;flex-direction:row;align-items:center;min-height:0;
+      position:fixed;bottom:0;left:0;right:0;z-index:100;
+      border-top:1px solid rgba(255,255,255,.12);flex-shrink:0}
+  .sb-logo{display:none}
+  .sb-ft{display:none}
+  .nav{display:flex;flex-direction:row;padding:0;overflow-x:auto;overflow-y:hidden;
+       gap:0;align-items:stretch;-webkit-overflow-scrolling:touch}
+  .nav::-webkit-scrollbar{display:none}
+  .nsec{display:none}
+  .nb{flex-direction:column;gap:3px;padding:10px 14px;border-radius:0;
+      font-size:10px;white-space:nowrap;min-width:64px;
+      align-items:center;justify-content:center;height:60px}
+  .nb svg{width:22px;height:22px;opacity:.6}
+  .nb.on svg{opacity:1}
+  .nb.on{background:rgba(189,201,188,.2);border-radius:0}
+  .nbdg{margin-left:0;margin-top:2px}
+  .main{flex:1;overflow:hidden;display:flex;flex-direction:column;
+        padding-bottom:60px}
+  .topbar{padding:0 16px;height:50px}
+  .top-t{font-size:17px}
+  .top-r .btn:not(.btn-p){display:none}
+  .top-r .btn-p{padding:6px 12px;font-size:12px}
+  .content{padding:14px 14px 16px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .kgrid{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .kpi{padding:14px}
+  .kval{font-size:22px}
+  .klbl{font-size:9px}
+  .dgrid{grid-template-columns:1fr;gap:12px}
+  .card{padding:16px}
+  .fgrid{grid-template-columns:1fr;gap:12px}
+  .omg{grid-template-columns:1fr 1fr;gap:8px}
+  .qc{padding:14px}
+  .qc > div[style*="grid-template-columns"]{
+    display:flex!important;flex-direction:column!important;gap:10px!important}
+  table{font-size:12px}
+  th{padding:8px 8px;font-size:9px}
+  td{padding:9px 8px}
+  .tbar{padding:12px 16px}
+  .tamt{font-size:20px}
+  .itbl{font-size:11px}
+  .itbl th,.itbl td{padding:5px 6px}
+  .itbl input,.itbl select{padding:3px 5px;font-size:11px}
+  .ch-w{height:100px}
+  .oc{padding:14px}
+  .onm{font-size:15px}
+}
+.hide-mobile{} @media(max-width:768px){.hide-mobile{display:none}}.nb-lbl{} @media(max-width:768px){.nb-lbl{font-size:10px;line-height:1}}</style>
 </head>
 <body>
 <div id="login"><div class="lcard">
@@ -141,8 +191,8 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
   <div class="topbar">
     <div class="top-t" id="pt">Dashboard</div>
     <div class="top-r">
-      <button class="btn" onclick="syncAll()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Sincronizar</button>
-      <button class="btn btn-p" onclick="go('cot')">+ Nueva cotizacion</button>
+      <button class="btn" onclick="syncAll()" style="padding:6px 10px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span class="hide-mobile">Sincronizar</span></button>
+      <button class="btn btn-p" onclick="go('cot')">+ <span class="hide-mobile">Nueva </span>cotizacion</button>
       <button class="btn" onclick="salir()" style="color:var(--rojo)">Salir</button>
     </div>
   </div>
