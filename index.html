@@ -927,28 +927,16 @@ function calcAuto(){
     if(!it.ancho||!it.alto) continue;
 
     if(it.tipo==='Espejo'){
-      if(it.mod==='medida'||it.mod==='hoja'){
-        // Buscar precio en tabla
-        var pTabla=buscarCosto(it.prod,it.col,it.esp,it.mod,it.submod);
-        if(pTabla){
-          it.costo=Math.round(pTabla*m2*100)/100;
-        } else {
-          // Fallback formula 3500 UYU/m2
-          var costoVidrio=(it.ancho*it.alto*PE)/TC;
-          var costoPerf=(1000*it.cant)/TC;
-          it.costo=Math.round((costoVidrio+costoPerf)*100)/100;
-        }
-      } else {
-        var costoVidrio=(it.ancho*it.alto*PE)/TC;
-        var costoPerf=(1000*it.cant)/TC;
-        it.costo=Math.round((costoVidrio+costoPerf)*100)/100;
-      }
+      // Formula fija: PE (UYU/m2, default 3500) por m2 + 1000 UYU por unidad (perfileria), convertido a USD
+      var costoVidrio=(m2*PE)/TC;
+      var costoPerf=(1000*it.cant)/TC;
+      it.costo=Math.round((costoVidrio+costoPerf)*100)/100;
+
       IID++;
       newLines.push({id:IID,tipo:'Borde pulido',amb:it.amb,cant:1,
         ancho:Math.round(perim*100)/100,alto:0,prod:'-',col:'-',esp:'-',mod:'-',submod:'',
         costo:Math.round(BORDE*perim*100)/100,precio:0,auto:true,parentId:it.id,
         desc:'2 USD/ml x '+Math.round(perim*100)/100+' ml'});
-
     } else if(it.tipo==='Mampara'){
       var pMamp=buscarCosto(it.prod,it.col,it.esp,it.mod,it.submod);
       it.costo=pMamp?Math.round(pMamp*m2*100)/100:0;
