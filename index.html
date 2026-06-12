@@ -1392,6 +1392,12 @@ async function guardarPres(silent){
   var ubi=document.getElementById('cu').value;
   var ven=document.getElementById('cv').value;
   if(!cli){toast('Completa el cliente');return;}
+  var clienteExiste=CL.some(function(c){return c.nom.toLowerCase()===cli.trim().toLowerCase();});
+  if(!clienteExiste){
+    toast('El cliente no esta registrado. Usa el boton "+ Cliente" para agregarlo primero.');
+    if(btn){btn.disabled=false;btn.textContent='Guardar en Sheets';}
+    return;
+  }
   var total=IT.filter(function(x){return !x.auto;}).reduce(function(s,it){return s+(it.precio||0);},0);
   var hoy=new Date().toLocaleDateString('es-UY');
   try{
