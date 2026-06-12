@@ -399,6 +399,10 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
           <div class="fg"><label class="fl">Direccion</label><input type="text" id="cldir" placeholder="Direccion"></div>
           <div class="fg"><label class="fl"> </label><button class="btn btn-p" style="height:41px" onclick="guardarCliente()">Guardar</button></div>
         </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+          <div style="font-size:11px;color:var(--gry)">Usa los botones Editar/Eliminar en la tabla para modificar clientes existentes.</div>
+          <button class="btn" onclick="importarClientesDeObras()" style="font-size:11px">Importar clientes de obras activas</button>
+        </div>
       </div>
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
@@ -416,8 +420,8 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
 
 <div id="cli-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9998;align-items:center;justify-content:center">
   <div style="background:var(--wht);border-radius:12px;padding:24px;width:340px;max-width:90vw">
-    <div style="font-family:var(--serif);font-size:18px;margin-bottom:16px">Nuevo cliente</div>
-    <div class="fg" style="margin-bottom:10px"><label class="fl">Nombre</label><input id="cm-nom" type="text" readonly style="background:var(--sage-pl)"></div>
+    <div id="cli-modal-title" style="font-family:var(--serif);font-size:18px;margin-bottom:16px">Nuevo cliente</div>
+    <div class="fg" style="margin-bottom:10px"><label class="fl">Nombre</label><input id="cm-nom" type="text"></div>
     <div class="fg" style="margin-bottom:10px"><label class="fl">Telefono</label><input id="cm-tel" type="text" placeholder="099123456"></div>
     <div class="fg" style="margin-bottom:10px"><label class="fl">Email</label><input id="cm-mail" type="text" placeholder="correo@ejemplo.com"></div>
     <div class="fg" style="margin-bottom:16px"><label class="fl">Direccion</label><input id="cm-dir" type="text" placeholder="Direccion"></div>
@@ -526,7 +530,15 @@ async function loadPR(){
 
 async function loadVN(){
   var rows=await apiGet('💵 Ventas!A8:L500');
-  VN=rows.filter(function(r){return r[1];}).map(function(r){
+  var HEADERS=['Fecha cobro','N° Obra','N\u00b0 Obra','Nombre obra / cliente','Moneda','Estado cobro'];
+  VN=rows.filter(function(r){
+    if(!r[1]) return false;
+    // Filtra filas que sean en realidad el encabezado duplicado
+    for(var k=0;k<HEADERS.length;k++){
+      if(r[1]===HEADERS[k]||r[2]===HEADERS[k]||r[3]===HEADERS[k]) return false;
+    }
+    return true;
+  }).map(function(r){
     return {fecha:r[1]||'',obra:r[2]||'',cli:r[3]||'',tipo:r[5]||'',
             est:r[7]||'Cobrado',mon:r[8]||'USD',monto:n(r[9])};
   });
@@ -588,11 +600,13 @@ async function loadCO(){
 async function loadCL(){
   try{
     var rows=await apiGet('👥 Clientes!A2:E1000');
-    CL=rows.filter(function(r){return r[0];}).map(function(r){
-      return {nom:r[0]||'',tel:r[1]||'',mail:r[2]||'',dir:r[3]||'',fecha:r[4]||''};
-    });
+    CL=[];
+    for(var i=0;i<rows.length;i++){
+      var r=rows[i];
+      if(!r[0]) continue;
+      CL.push({rowIdx:i+2,nom:r[0]||'',tel:r[1]||'',mail:r[2]||'',dir:r[3]||'',fecha:r[4]||''});
+    }
   }catch(e){
-    // La hoja Clientes no existe todavia
     CL=[];
   }
   rendCL();
@@ -620,15 +634,72 @@ function rendCL(){rendCLfiltered('');}
 function rendCLfiltered(bus){
   var d=CL.slice().reverse();
   if(bus) d=d.filter(function(c){return c.nom.toLowerCase().indexOf(bus)!==-1;});
-  var h='';
-  if(d.length){
-    h='<table><tr><th>Nombre</th><th>Telefono</th><th>Email</th><th>Direccion</th><th>Alta</th></tr>';
-    for(var i=0;i<d.length;i++){var c=d[i];
-      h+='<tr><td style="font-weight:500">'+c.nom+'</td><td>'+(c.tel||'-')+'</td><td>'+(c.mail||'-')+'</td><td style="font-size:12px;color:var(--gry)">'+(c.dir||'-')+'</td><td style="font-size:11px;color:var(--gry)">'+(c.fecha||'-')+'</td></tr>';
+  var tab=document.getElementById('cltab');
+  if(!d.length){tab.innerHTML='<div style="text-align:center;padding:28px;color:var(--gry)">Sin clientes registrados</div>';return;}
+  var tbl=document.createElement('table');
+  var hdr=tbl.insertRow();
+  ['Nombre','Telefono','Email','Direccion','Alta',''].forEach(function(h){
+    var th=document.createElement('th');th.textContent=h;hdr.appendChild(th);
+  });
+  d.forEach(function(c){
+    var tr=tbl.insertRow();
+    var vals=[
+      {t:c.nom,s:'font-weight:500'},
+      {t:c.tel||'-',s:''},
+      {t:c.mail||'-',s:''},
+      {t:c.dir||'-',s:'font-size:12px;color:var(--gry)'},
+      {t:c.fecha||'-',s:'font-size:11px;color:var(--gry)'}
+    ];
+    vals.forEach(function(v){
+      var td=tr.insertCell();td.style.cssText=v.s;td.textContent=v.t;
+    });
+    var tdAct=tr.insertCell();
+    tdAct.style.whiteSpace='nowrap';
+    var editBtn=document.createElement('button');
+    editBtn.className='btn';editBtn.textContent='Editar';
+    editBtn.style.cssText='padding:4px 10px;font-size:11px;margin-right:6px';
+    editBtn.onclick=(function(cli){return function(){editarCliente(cli);};})(c);
+    var delBtn=document.createElement('button');
+    delBtn.className='btn';delBtn.textContent='Eliminar';
+    delBtn.style.cssText='padding:4px 10px;font-size:11px;color:var(--rojo)';
+    delBtn.onclick=(function(cli){return function(){eliminarCliente(cli);};})(c);
+    tdAct.appendChild(editBtn);tdAct.appendChild(delBtn);
+  });
+  tab.innerHTML='';tab.appendChild(tbl);
+}
+
+function editarCliente(cli){
+  document.getElementById('cm-nom').value=cli.nom;
+  document.getElementById('cm-nom').readOnly=false;
+  document.getElementById('cm-tel').value=cli.tel;
+  document.getElementById('cm-mail').value=cli.mail;
+  document.getElementById('cm-dir').value=cli.dir;
+  document.getElementById('cm-save').setAttribute('data-edit-row',cli.rowIdx);
+  document.getElementById('cli-modal-title').textContent='Editar cliente';
+  document.getElementById('cli-modal').style.display='flex';
+}
+
+async function eliminarCliente(cli){
+  if(!confirm('Eliminar cliente "'+cli.nom+'"? Esta accion no se puede deshacer.'))return;
+  try{
+    var meta=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SID,
+      {headers:{Authorization:'Bearer '+TOK}});
+    var metaJson=await meta.json();
+    var sheetId=null;
+    for(var i=0;i<metaJson.sheets.length;i++){
+      if(metaJson.sheets[i].properties.title==='👥 Clientes'){sheetId=metaJson.sheets[i].properties.sheetId;break;}
     }
-    h+='</table>';
-  }else{h='<div style="text-align:center;padding:28px;color:var(--gry)">Sin clientes registrados</div>';}
-  document.getElementById('cltab').innerHTML=h;
+    if(sheetId===null){toast('Hoja no encontrada');return;}
+    var batchUrl='https://sheets.googleapis.com/v4/spreadsheets/'+SID+':batchUpdate';
+    var r=await fetch(batchUrl,{method:'POST',
+      headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
+      body:JSON.stringify({requests:[{deleteDimension:{range:{
+        sheetId:sheetId,dimension:'ROWS',startIndex:cli.rowIdx-1,endIndex:cli.rowIdx
+      }}}]})});
+    if(!r.ok){var t=await r.text();throw new Error('HTTP '+r.status+': '+t.substring(0,100));}
+    await loadCL();
+    toast('Cliente eliminado');
+  }catch(e){toast('Error: '+e.message);}
 }
 
 async function ensureClientesSheet(){
@@ -671,6 +742,28 @@ async function guardarCliente(){
   }catch(e){toast('Error: '+e.message);}
 }
 
+async function importarClientesDeObras(){
+  // Obtiene nombres unicos de clientes con obras (desde OB) que no estan en CL
+  var nombresObras=[];
+  OB.forEach(function(o){
+    if(o.cli&&nombresObras.indexOf(o.cli)===-1) nombresObras.push(o.cli);
+  });
+  var faltantes=nombresObras.filter(function(nom){
+    return !CL.some(function(c){return c.nom.toLowerCase()===nom.toLowerCase();});
+  });
+  if(!faltantes.length){toast('No hay clientes nuevos para importar');return;}
+  if(!confirm('Se van a agregar '+faltantes.length+' cliente(s) a la base: '+faltantes.join(', ')+'. Continuar?'))return;
+  try{
+    await ensureClientesSheet();
+    var hoy=new Date().toLocaleDateString('es-UY');
+    for(var i=0;i<faltantes.length;i++){
+      await apiAdd('👥 Clientes',[faltantes[i],'','','',hoy]);
+    }
+    await loadCL();
+    toast(faltantes.length+' cliente(s) importado(s) OK');
+  }catch(e){toast('Error: '+e.message);}
+}
+
 function quickAddCliente(){
   var nom=(document.getElementById('cc').value||'').trim();
   if(!nom){toast('Escribe el nombre del cliente primero');return;}
@@ -680,6 +773,8 @@ function quickAddCliente(){
   document.getElementById('cm-tel').value='';
   document.getElementById('cm-mail').value='';
   document.getElementById('cm-dir').value='';
+  document.getElementById('cm-save').removeAttribute('data-edit-row');
+  document.getElementById('cli-modal-title').textContent='Nuevo cliente';
   document.getElementById('cli-modal').style.display='flex';
 }
 
@@ -688,24 +783,39 @@ function closeCliModal(){
 }
 
 async function confirmAddCliente(){
-  var nom=document.getElementById('cm-nom').value;
+  var nom=document.getElementById('cm-nom').value.trim();
   var tel=document.getElementById('cm-tel').value;
   var mail=document.getElementById('cm-mail').value;
   var dir=document.getElementById('cm-dir').value;
   var btn=document.getElementById('cm-save');
+  var editRow=btn.getAttribute('data-edit-row');
+  if(!nom){toast('El nombre no puede estar vacio');return;}
   if(btn.disabled)return;
   btn.disabled=true;btn.textContent='Guardando...';
   try{
     await ensureClientesSheet();
-    var hoy=new Date().toLocaleDateString('es-UY');
-    await apiAdd('👥 Clientes',[nom,tel,mail,dir,hoy]);
+    if(editRow){
+      var url='https://sheets.googleapis.com/v4/spreadsheets/'+SID+'/values/'
+        +encodeURIComponent('👥 Clientes!A'+editRow+':E'+editRow)
+        +'?valueInputOption=USER_ENTERED';
+      var fechaOrig=CL.find(function(c){return c.rowIdx==editRow;});
+      var fecha=fechaOrig?fechaOrig.fecha:new Date().toLocaleDateString('es-UY');
+      var r=await fetch(url,{method:'PUT',
+        headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
+        body:JSON.stringify({values:[[nom,tel,mail,dir,fecha]]})});
+      if(!r.ok){var t=await r.text();throw new Error('HTTP '+r.status+': '+t.substring(0,100));}
+      btn.removeAttribute('data-edit-row');
+      toast('Cliente actualizado OK');
+    }else{
+      var hoy=new Date().toLocaleDateString('es-UY');
+      await apiAdd('👥 Clientes',[nom,tel,mail,dir,hoy]);
+      toast('Cliente "'+nom+'" agregado a la base');
+    }
     await loadCL();
     closeCliModal();
-    toast('Cliente "'+nom+'" agregado a la base');
   }catch(e){toast('Error: '+e.message);}
   finally{btn.disabled=false;btn.textContent='Guardar cliente';}
 }
-
 
 
 function updDash(){
