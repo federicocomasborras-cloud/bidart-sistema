@@ -243,7 +243,13 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
     <div class="sc" id="sc-cot">
       <div class="card">
         <div class="fgrid">
-          <div class="fg"><label class="fl">Cliente</label><input id="cc" type="text" placeholder="Nombre del cliente"></div>
+          <div class="fg"><label class="fl">Cliente</label>
+            <div style="display:flex;gap:6px">
+              <input id="cc" type="text" placeholder="Buscar o escribir cliente..." list="cli-list" style="flex:1">
+              <datalist id="cli-list"></datalist>
+              <button class="btn" onclick="quickAddCliente()" style="white-space:nowrap;font-size:11px" title="Agregar cliente nuevo a la base">+ Cliente</button>
+            </div>
+          </div>
           <div class="fg"><label class="fl">Ubicacion</label><input id="cu" type="text" placeholder="Direccion"></div>
           <div class="fg"><label class="fl">N Presupuesto</label><input id="cn" type="text" readonly></div>
           <div class="fg"><label class="fl">Vendedor</label><input id="cv" type="text" value="Gustavo Bidart"></div>
@@ -522,11 +528,19 @@ async function loadGS(){
 }
 
 async function loadOB(){
-  var rows=await apiGet('🏗️ Obras!A8:S108');
-  OB=rows.filter(function(r){return r[1];}).map(function(r){
-    return {cod:r[1]||'',cli:r[2]||'',est:r[4]||'En curso',
-            precio:n(r[7]),equiv:n(r[14]),costo:n(r[15]),res:n(r[16]),margen:n(r[17])};
-  });
+  var rows=await apiGet('🏗️ Obras!A8:T108');
+  OB=[];
+  for(var i=0;i<rows.length;i++){
+    var r=rows[i];
+    if(!r[1]) continue;
+    var estManual=(r[19]||'').toString().trim();
+    OB.push({
+      rowIdx:i+8,
+      cod:r[1]||'',cli:r[2]||'',
+      est: estManual==='Finalizada' ? 'Finalizada' : (r[4]||'En curso'),
+      precio:n(r[7]),equiv:n(r[14]),costo:n(r[15]),res:n(r[16]),margen:n(r[17])
+    });
+  }
   rendOB();
 }
 
@@ -568,6 +582,18 @@ async function loadCL(){
     CL=[];
   }
   rendCL();
+  updCliList();
+}
+
+function updCliList(){
+  var dl=document.getElementById('cli-list');
+  if(!dl)return;
+  dl.innerHTML='';
+  CL.forEach(function(c){
+    var op=document.createElement('option');
+    op.value=c.nom;
+    dl.appendChild(op);
+  });
 }
 
 function filtCL(){
@@ -630,6 +656,21 @@ async function guardarCliente(){
     toast('Cliente guardado OK');
   }catch(e){toast('Error: '+e.message);}
 }
+
+async function quickAddCliente(){
+  var nom=(document.getElementById('cc').value||'').trim();
+  if(!nom){toast('Escribe el nombre del cliente primero');return;}
+  var existe=CL.some(function(c){return c.nom.toLowerCase()===nom.toLowerCase();});
+  if(existe){toast('Ese cliente ya esta en la base');return;}
+  try{
+    await ensureClientesSheet();
+    var hoy=new Date().toLocaleDateString('es-UY');
+    await apiAdd('👥 Clientes',[nom,'','','',hoy]);
+    await loadCL();
+    toast('Cliente "'+nom+'" agregado a la base');
+  }catch(e){toast('Error: '+e.message);}
+}
+
 
 
 function updDash(){
@@ -813,25 +854,38 @@ function rendOB(){
     h+='<div class="om"><div class="omv" style="color:var(--rojo)">$'+Math.round(o.costo).toLocaleString()+'</div><div class="oml">Gastos</div></div>';
     h+='<div class="om"><div class="omv" style="color:'+rc+'">$'+Math.round(o.res).toLocaleString()+'</div><div class="oml">Resultado</div></div>';
     h+='<div class="om"><div class="omv">'+(o.equiv>0?Math.round(o.margen*100)+'%':'-')+'</div><div class="oml">Margen</div></div>';
-    h+='</div><div class="pg"><div class="pgf" style="width:'+pct+'%"></div></div></div>';
+    h+='</div><div class="pg"><div class="pgf" style="width:'+pct+'%"></div></div>';
+    h+='<div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">';
+    if(o.est==='Finalizada'){
+      h+='<button class="btn" data-row="'+o.rowIdx+'" data-act="curso" style="font-size:11px;color:var(--ambar)">Marcar En curso</button>';
+    }else{
+      h+='<button class="btn btn-p" data-row="'+o.rowIdx+'" data-act="fin" style="font-size:11px">Marcar Finalizada</button>';
+    }
+    h+='</div></div>';
   }
   div.innerHTML=h;
+  // Bind buttons (avoid inline onclick due to nested quotes)
+  var btns=div.querySelectorAll('button[data-row]');
+  for(var i=0;i<btns.length;i++){
+    var b=btns[i];
+    var rowIdx=parseInt(b.getAttribute('data-row'));
+    var act=b.getAttribute('data-act');
+    b.onclick=(function(ri,a){return function(){marcarObraEstado(ri,a==='fin'?'Finalizada':'');};})(rowIdx,act);
+  }
 }
 
-function filtVN(){rendVN();}
-
-function clearVNFilters(){
-  document.getElementById('vfd').value='';
-  document.getElementById('vfh').value='';
-  document.getElementById('vsrch').value='';
-  rendVN();
-}
-
-function parseFechaVN(f){
-  // f esta en formato dd/mm/yyyy
-  var p=f.split('/');
-  if(p.length!==3)return null;
-  return new Date(p[2],p[1]-1,p[0]);
+async function marcarObraEstado(rowIdx,valor){
+  try{
+    var url='https://sheets.googleapis.com/v4/spreadsheets/'+SID+'/values/'
+      +encodeURIComponent('🏗️ Obras!T'+rowIdx+':T'+rowIdx)
+      +'?valueInputOption=USER_ENTERED';
+    var r=await fetch(url,{method:'PUT',
+      headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
+      body:JSON.stringify({values:[[valor]]})});
+    if(!r.ok){var t=await r.text();throw new Error('HTTP '+r.status+': '+t.substring(0,100));}
+    await loadOB();
+    toast(valor==='Finalizada'?'Obra marcada como Finalizada':'Obra marcada En curso');
+  }catch(e){toast('Error: '+e.message);}
 }
 
 function rendVN(){
