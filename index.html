@@ -1126,14 +1126,15 @@ async function guardarPres(silent){
 }
 
 async function genPDF(){
+  var itemsSnapshot=JSON.parse(JSON.stringify(IT));
   await guardarPres(true);
   var cli=document.getElementById('cc').value||'Cliente';
   var nro=document.getElementById('cn').value;
   var tot=document.getElementById('tot').textContent;
   var win=window.open('','_blank');
   var rows='';
-  for(var i=0;i<IT.length;i++){
-    var it=IT[i];
+  for(var i=0;i<itemsSnapshot.length;i++){
+    var it=itemsSnapshot[i];
     var m2=(it.cant*(it.ancho||0)*(it.alto||0)).toFixed(2);
     var costoStr=it.costo>0?'$'+it.costo.toFixed(2):'-';
     var precioStr=it.precio>0?'$'+it.precio.toFixed(2):'-';
