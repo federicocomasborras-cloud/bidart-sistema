@@ -1113,7 +1113,7 @@ async function guardarPres(silent){
   var hoy=new Date().toLocaleDateString('es-UY');
   try{
     var presUrl='https://sheets.googleapis.com/v4/spreadsheets/'+SID+'/values/'
-      +encodeURIComponent('📊 Presupuestos!A11')+':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS';
+      +encodeURIComponent('📊 Presupuestos!A10:N10')+':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS';
     var presR=await fetch(presUrl,{method:'POST',
       headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
       body:JSON.stringify({values:[[nro,hoy,'',cli,'',ubi,'En espera',ven,'','',Math.round(total*100)/100,'USD',Math.round(total*100)/100,'']]})});
