@@ -927,10 +927,14 @@ function calcAuto(){
     if(!it.ancho||!it.alto) continue;
 
     if(it.tipo==='Espejo'){
-      // Formula fija: PE (UYU/m2, default 3500) por m2 + 1000 UYU por unidad (perfileria), convertido a USD
-      var costoVidrio=(m2*PE)/TC;
-      var costoPerf=(1000*it.cant)/TC;
-      it.costo=Math.round((costoVidrio+costoPerf)*100)/100;
+      // Precio (autocompletado, editable): formula comercial fija
+      // m2 x 3500 UYU (PE) + 1000 UYU por unidad, convertido a USD
+      it.precio=Math.round((((m2*PE)+(1000*it.cant))/TC)*100)/100;
+
+      // Costo: costo real de compra, independiente de la formula de precio.
+      // Busca en tabla Serolux por producto/color/espesor/modalidad
+      var pTabla=buscarCosto(it.prod,it.col,it.esp,it.mod,it.submod);
+      it.costo=pTabla?Math.round(pTabla*m2*100)/100:0;
 
       IID++;
       newLines.push({id:IID,tipo:'Borde pulido',amb:it.amb,cant:1,
@@ -1077,8 +1081,15 @@ function mkSel2(opts,w){
 function mkInp(id,fld,val,type,w,ph){
   var td=document.createElement('td');var inp=document.createElement('input');
   inp.type=type;inp.value=val;inp.style.width=w;inp.placeholder=ph;
-  if(type==='number')inp.step='0.01';
-  inp.onchange=(function(i,f,t){return function(){setItem(i,f,t==='number'?+this.value:this.value);};})(id,fld,type);
+  if(type==='number'){
+    if(fld==='cant'){inp.step='1';inp.min='1';}
+    else{inp.step='0.01';}
+  }
+  inp.onchange=(function(i,f,t){return function(){
+    var v=t==='number'?+this.value:this.value;
+    if(f==='cant')v=Math.max(1,Math.round(v));
+    setItem(i,f,v);
+  };})(id,fld,type);
   td.appendChild(inp);return td;
 }
 
