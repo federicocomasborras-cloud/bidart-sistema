@@ -413,6 +413,20 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
 </div>
 </div>
 <div class="toast" id="toast"></div>
+
+<div id="cli-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9998;align-items:center;justify-content:center">
+  <div style="background:var(--wht);border-radius:12px;padding:24px;width:340px;max-width:90vw">
+    <div style="font-family:var(--serif);font-size:18px;margin-bottom:16px">Nuevo cliente</div>
+    <div class="fg" style="margin-bottom:10px"><label class="fl">Nombre</label><input id="cm-nom" type="text" readonly style="background:var(--sage-pl)"></div>
+    <div class="fg" style="margin-bottom:10px"><label class="fl">Telefono</label><input id="cm-tel" type="text" placeholder="099123456"></div>
+    <div class="fg" style="margin-bottom:10px"><label class="fl">Email</label><input id="cm-mail" type="text" placeholder="correo@ejemplo.com"></div>
+    <div class="fg" style="margin-bottom:16px"><label class="fl">Direccion</label><input id="cm-dir" type="text" placeholder="Direccion"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="closeCliModal()">Cancelar</button>
+      <button class="btn btn-p" id="cm-save" onclick="confirmAddCliente()">Guardar cliente</button>
+    </div>
+  </div>
+</div>
 <script>
 var SID='1-Hs41vg9Zpki-qkR93CUu3Hd4ht0err7vAulguDxnag';
 var CID='760052991879-6g9jgtjd1mfpfc5t02vct9unp8sq1pul.apps.googleusercontent.com';
@@ -657,18 +671,39 @@ async function guardarCliente(){
   }catch(e){toast('Error: '+e.message);}
 }
 
-async function quickAddCliente(){
+function quickAddCliente(){
   var nom=(document.getElementById('cc').value||'').trim();
   if(!nom){toast('Escribe el nombre del cliente primero');return;}
   var existe=CL.some(function(c){return c.nom.toLowerCase()===nom.toLowerCase();});
   if(existe){toast('Ese cliente ya esta en la base');return;}
+  document.getElementById('cm-nom').value=nom;
+  document.getElementById('cm-tel').value='';
+  document.getElementById('cm-mail').value='';
+  document.getElementById('cm-dir').value='';
+  document.getElementById('cli-modal').style.display='flex';
+}
+
+function closeCliModal(){
+  document.getElementById('cli-modal').style.display='none';
+}
+
+async function confirmAddCliente(){
+  var nom=document.getElementById('cm-nom').value;
+  var tel=document.getElementById('cm-tel').value;
+  var mail=document.getElementById('cm-mail').value;
+  var dir=document.getElementById('cm-dir').value;
+  var btn=document.getElementById('cm-save');
+  if(btn.disabled)return;
+  btn.disabled=true;btn.textContent='Guardando...';
   try{
     await ensureClientesSheet();
     var hoy=new Date().toLocaleDateString('es-UY');
-    await apiAdd('👥 Clientes',[nom,'','','',hoy]);
+    await apiAdd('👥 Clientes',[nom,tel,mail,dir,hoy]);
     await loadCL();
+    closeCliModal();
     toast('Cliente "'+nom+'" agregado a la base');
   }catch(e){toast('Error: '+e.message);}
+  finally{btn.disabled=false;btn.textContent='Guardar cliente';}
 }
 
 
