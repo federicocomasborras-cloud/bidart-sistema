@@ -858,12 +858,13 @@ async function eliminarPres(nro){
 }
 
 async function cambiarEstado(nro,nuevoEst){
-  var rows=await apiGet('📊 Presupuestos!A11:G500');
-  var rowIdx=-1;
+  var rows=await apiGet('📊 Presupuestos!A11:N500');
+  var rowIdx=-1;var presRow=null;
   for(var i=0;i<rows.length;i++){
-    if(rows[i][0]&&rows[i][0].toString()===nro){rowIdx=i+11;break;}
+    if(rows[i][0]&&rows[i][0].toString()===nro){rowIdx=i+11;presRow=rows[i];break;}
   }
   if(rowIdx===-1){toast('Presupuesto no encontrado');return;}
+  var estadoAnterior=presRow[6]||'';
   var url='https://sheets.googleapis.com/v4/spreadsheets/'+SID+'/values/'
     +encodeURIComponent('📊 Presupuestos!G'+rowIdx+':G'+rowIdx)
     +'?valueInputOption=USER_ENTERED';
@@ -871,7 +872,19 @@ async function cambiarEstado(nro,nuevoEst){
     headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
     body:JSON.stringify({values:[[nuevoEst]]})});
   if(!r.ok){toast('Error al actualizar');return;}
-  await loadPR();
+
+  // Si pasa a Ganada (y antes no lo era), registrar cobro Pendiente en Ventas
+  if(nuevoEst==='Ganada'&&estadoAnterior!=='Ganada'){
+    try{
+      var cli=presRow[3]||'';
+      var precio=n(presRow[10]);
+      var mon=presRow[11]||'USD';
+      var hoy=new Date().toLocaleDateString('es-UY');
+      await apiAdd('💵 Ventas',[VN.length+1,hoy,'',cli,nro,'Pendiente de cobro','-','Pendiente',mon,precio,TC,mon==='USD'?precio:Math.round(precio/TC)]);
+    }catch(e){console.error('Error creando venta pendiente:',e);}
+  }
+
+  await loadPR();await loadVN();updDash();
   toast('Estado: '+nuevoEst);
 }
 
