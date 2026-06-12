@@ -880,7 +880,12 @@ async function cambiarEstado(nro,nuevoEst){
       var precio=n(presRow[10]);
       var mon=presRow[11]||'USD';
       var hoy=new Date().toLocaleDateString('es-UY');
-      await apiAdd('💵 Ventas',[VN.length+1,hoy,'',cli,nro,'Pendiente de cobro','-','Pendiente',mon,precio,TC,mon==='USD'?precio:Math.round(precio/TC)]);
+      var vUrl='https://sheets.googleapis.com/v4/spreadsheets/'+SID+'/values/'
+        +encodeURIComponent('💵 Ventas!A7:L7')+':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS';
+      var vR=await fetch(vUrl,{method:'POST',
+        headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
+        body:JSON.stringify({values:[[VN.length+1,hoy,'',cli,nro,'Pendiente de cobro','-','Pendiente',mon,precio,TC,mon==='USD'?precio:Math.round(precio/TC)]]})});
+      if(!vR.ok){var vt=await vR.text();console.error('Error venta pendiente: '+vt.substring(0,150));}
     }catch(e){console.error('Error creando venta pendiente:',e);}
   }
 
@@ -1043,7 +1048,12 @@ async function guardarVenta(){
   var fmt=f.split('-').reverse().join('/');
   var eq=m==='USD'?mo:Math.round(mo/TC);
   try{
-    await apiAdd('💵 Ventas',[VN.length+1,fmt,ob,c,'',t,'-','Cobrado',m,mo,TC,eq]);
+    var gvUrl='https://sheets.googleapis.com/v4/spreadsheets/'+SID+'/values/'
+      +encodeURIComponent('💵 Ventas!A7:L7')+':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS';
+    var gvR=await fetch(gvUrl,{method:'POST',
+      headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
+      body:JSON.stringify({values:[[VN.length+1,fmt,ob,c,'',t,'-','Cobrado',m,mo,TC,eq]]})});
+    if(!gvR.ok){var gvt=await gvR.text();throw new Error('HTTP '+gvR.status+': '+gvt.substring(0,100));}
     document.getElementById('vmo').value='';
     document.getElementById('vc').value='';
     await loadVN();updDash();
