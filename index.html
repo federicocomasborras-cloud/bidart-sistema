@@ -129,6 +129,7 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
   .top-r .btn-p{padding:6px 12px;font-size:12px}
   .content{padding:14px 14px 16px;overflow-y:auto;-webkit-overflow-scrolling:touch}
   .kgrid{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .kgrid[style*="repeat(3"]{grid-template-columns:1fr 1fr!important}
   .kpi{padding:14px}
   .kval{font-size:22px}
   .klbl{font-size:9px}
@@ -183,6 +184,7 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
     <button class="nb" onclick="go('gastos',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/><circle cx="12" cy="12" r="10"/></svg>Gastos</button>
     <div class="nsec">Config</div>
     <button class="nb" onclick="go('costos',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>Costos</button>
+    <button class="nb" onclick="go('clientes',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Clientes</button>
   </nav>
   <div class="sb-ft"><div class="u-av" id="uav">G</div><div><div class="u-nm" id="unm">-</div><div class="u-rl">Sistema Bidart</div></div></div>
 </div>
@@ -306,7 +308,25 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
           <div class="fg"><label class="fl"> </label><button class="btn btn-p" style="height:41px" onclick="guardarVenta()">Guardar</button></div>
         </div>
       </div>
-      <div class="card"><div style="font-family:var(--serif);font-size:16px;margin-bottom:14px">Ventas registradas</div><div id="vtab"><div class="spin-w"><div class="spin"></div>Cargando...</div></div></div>
+
+      <div class="kgrid" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+        <div class="kpi"><div class="klbl">Total filtrado</div><div class="kval" id="vtot-usd">-</div><div class="ksub">USD equiv.</div></div>
+        <div class="kpi"><div class="klbl">Cantidad de cobros</div><div class="kval" id="vtot-cnt">-</div><div class="ksub">registros</div></div>
+        <div class="kpi"><div class="klbl">Promedio por cobro</div><div class="kval" id="vtot-avg">-</div><div class="ksub">USD equiv.</div></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+          <div style="font-family:var(--serif);font-size:16px">Ventas registradas</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end">
+            <div class="fg"><label class="fl">Desde</label><input type="date" id="vfd" style="width:140px" oninput="filtVN()"></div>
+            <div class="fg"><label class="fl">Hasta</label><input type="date" id="vfh" style="width:140px" oninput="filtVN()"></div>
+            <div class="fg"><label class="fl">Cliente</label><input type="text" id="vsrch" placeholder="Buscar cliente..." style="width:160px" oninput="filtVN()"></div>
+            <button class="btn" onclick="clearVNFilters()" style="height:38px">Limpiar</button>
+          </div>
+        </div>
+        <div id="vtab"><div class="spin-w"><div class="spin"></div>Cargando...</div></div>
+      </div>
     </div>
 
     <div class="sc" id="sc-gastos">
@@ -363,6 +383,26 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
       <div class="card"><div style="font-family:var(--serif);font-size:16px;margin-bottom:16px">Tabla de costos - Serolux</div><div id="ctab"><div class="spin-w"><div class="spin"></div>Cargando...</div></div></div>
     </div>
 
+    <div class="sc" id="sc-clientes">
+      <div class="qc">
+        <div style="font-family:var(--serif);font-size:16px;margin-bottom:14px">Nuevo cliente</div>
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:10px;align-items:end">
+          <div class="fg"><label class="fl">Nombre / Razon social</label><input type="text" id="clnom" placeholder="Nombre completo"></div>
+          <div class="fg"><label class="fl">Telefono</label><input type="text" id="cltel" placeholder="099123456"></div>
+          <div class="fg"><label class="fl">Email</label><input type="text" id="clmail" placeholder="correo@ejemplo.com"></div>
+          <div class="fg"><label class="fl">Direccion</label><input type="text" id="cldir" placeholder="Direccion"></div>
+          <div class="fg"><label class="fl"> </label><button class="btn btn-p" style="height:41px" onclick="guardarCliente()">Guardar</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div style="font-family:var(--serif);font-size:16px">Clientes registrados</div>
+          <input type="text" id="clsrch" placeholder="Buscar cliente..." style="width:200px" oninput="filtCL()">
+        </div>
+        <div id="cltab"><div class="spin-w"><div class="spin"></div>Cargando...</div></div>
+      </div>
+    </div>
+
   </div>
 </div>
 </div>
@@ -372,7 +412,7 @@ var SID='1-Hs41vg9Zpki-qkR93CUu3Hd4ht0err7vAulguDxnag';
 var CID='760052991879-6g9jgtjd1mfpfc5t02vct9unp8sq1pul.apps.googleusercontent.com';
 var SC='https://www.googleapis.com/auth/spreadsheets';
 var TOK=null,TC=43,PE=3500;
-var PR=[],OB=[],VN=[],GS=[],CO=[];
+var PR=[],OB=[],VN=[],GS=[],CO=[],CL=[];
 var IT=[],IID=0,tcl=null;
 
 window.onload=function(){
@@ -430,7 +470,7 @@ function n(s){return parseFloat((s||'').toString().replace(/[^0-9.-]/g,''))||0;}
 async function syncAll(){
   toast('Sincronizando...');
   try{
-    await Promise.all([loadPR(),loadVN(),loadGS(),loadOB(),loadCO()]);
+    await Promise.all([loadPR(),loadVN(),loadGS(),loadOB(),loadCO(),loadCL()]);
     updDash();
     toast('Datos actualizados OK');
   }catch(e){toast('Error: '+e.message);console.error(e);}
@@ -514,6 +554,84 @@ async function loadCO(){
   rendCO();
 }
 
+// ============================================================
+// CLIENTES
+// ============================================================
+async function loadCL(){
+  try{
+    var rows=await apiGet('👥 Clientes!A2:E1000');
+    CL=rows.filter(function(r){return r[0];}).map(function(r){
+      return {nom:r[0]||'',tel:r[1]||'',mail:r[2]||'',dir:r[3]||'',fecha:r[4]||''};
+    });
+  }catch(e){
+    // La hoja Clientes no existe todavia
+    CL=[];
+  }
+  rendCL();
+}
+
+function filtCL(){
+  var bus=(document.getElementById('clsrch').value||'').toLowerCase();
+  rendCLfiltered(bus);
+}
+
+function rendCL(){rendCLfiltered('');}
+
+function rendCLfiltered(bus){
+  var d=CL.slice().reverse();
+  if(bus) d=d.filter(function(c){return c.nom.toLowerCase().indexOf(bus)!==-1;});
+  var h='';
+  if(d.length){
+    h='<table><tr><th>Nombre</th><th>Telefono</th><th>Email</th><th>Direccion</th><th>Alta</th></tr>';
+    for(var i=0;i<d.length;i++){var c=d[i];
+      h+='<tr><td style="font-weight:500">'+c.nom+'</td><td>'+(c.tel||'-')+'</td><td>'+(c.mail||'-')+'</td><td style="font-size:12px;color:var(--gry)">'+(c.dir||'-')+'</td><td style="font-size:11px;color:var(--gry)">'+(c.fecha||'-')+'</td></tr>';
+    }
+    h+='</table>';
+  }else{h='<div style="text-align:center;padding:28px;color:var(--gry)">Sin clientes registrados</div>';}
+  document.getElementById('cltab').innerHTML=h;
+}
+
+async function ensureClientesSheet(){
+  var meta=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SID,
+    {headers:{Authorization:'Bearer '+TOK}});
+  var metaJson=await meta.json();
+  var exists=false;
+  for(var i=0;i<metaJson.sheets.length;i++){
+    if(metaJson.sheets[i].properties.title==='👥 Clientes'){exists=true;break;}
+  }
+  if(exists)return;
+  var batchUrl='https://sheets.googleapis.com/v4/spreadsheets/'+SID+':batchUpdate';
+  await fetch(batchUrl,{method:'POST',
+    headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
+    body:JSON.stringify({requests:[{addSheet:{properties:{title:'👥 Clientes'}}}]})});
+  // Add headers
+  var url='https://sheets.googleapis.com/v4/spreadsheets/'+SID+'/values/'
+    +encodeURIComponent('👥 Clientes!A1')+':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS';
+  await fetch(url,{method:'POST',
+    headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
+    body:JSON.stringify({values:[['Nombre','Telefono','Email','Direccion','Fecha alta']]})});
+}
+
+async function guardarCliente(){
+  var nom=document.getElementById('clnom').value;
+  var tel=document.getElementById('cltel').value;
+  var mail=document.getElementById('clmail').value;
+  var dir=document.getElementById('cldir').value;
+  if(!nom){toast('Completa el nombre del cliente');return;}
+  try{
+    await ensureClientesSheet();
+    var hoy=new Date().toLocaleDateString('es-UY');
+    await apiAdd('👥 Clientes',[nom,tel,mail,dir,hoy]);
+    document.getElementById('clnom').value='';
+    document.getElementById('cltel').value='';
+    document.getElementById('clmail').value='';
+    document.getElementById('cldir').value='';
+    await loadCL();
+    toast('Cliente guardado OK');
+  }catch(e){toast('Error: '+e.message);}
+}
+
+
 function updDash(){
   var cob=VN.filter(function(v){return v.est==='Cobrado';});
   var pen=VN.filter(function(v){return v.est==='Pendiente';});
@@ -581,7 +699,7 @@ function rendPR(fil,bus){
   if(!d.length){tab.innerHTML='<div style="text-align:center;padding:28px;color:var(--gry)">Sin resultados</div>';return;}
   var tbl=document.createElement('table');
   var hdr=tbl.insertRow();
-  ['N','Fecha','Cliente','Estado','Mon','Precio','Cambiar estado'].forEach(function(h){
+  ['N','Fecha','Cliente','Estado','Mon','Precio','Cambiar estado',''].forEach(function(h){
     var th=document.createElement('th');th.textContent=h;
     if(h==='Precio')th.style.textAlign='right';
     hdr.appendChild(th);
@@ -620,10 +738,48 @@ function rendPR(fil,bus){
       wrap.appendChild(btn);
     });
     tdBtn.appendChild(wrap);
+
+    var tdDel=tr.insertCell();
+    var delBtn=document.createElement('button');
+    delBtn.className='btn';delBtn.textContent='Eliminar';
+    delBtn.style.cssText='padding:4px 10px;color:var(--rojo);font-size:11px';
+    delBtn.onclick=(function(nro){return function(){eliminarPres(nro);};})(p.nro);
+    tdDel.appendChild(delBtn);
   });
   tab.innerHTML='';tab.appendChild(tbl);
 }
 function filtP(f){rendPR(f,document.getElementById('psrch').value);}
+
+async function eliminarPres(nro){
+  if(!confirm('Eliminar presupuesto '+nro+'? Esta accion no se puede deshacer.'))return;
+  try{
+    var rows=await apiGet('📊 Presupuestos!A11:N500');
+    var rowIdx=-1;
+    for(var i=0;i<rows.length;i++){
+      if(rows[i][0]&&rows[i][0].toString()===nro){rowIdx=i+10;break;}
+    }
+    if(rowIdx===-1){toast('No encontrado');return;}
+    var meta=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SID,
+      {headers:{Authorization:'Bearer '+TOK}});
+    var metaJson=await meta.json();
+    var sheetId=null;
+    for(var i=0;i<metaJson.sheets.length;i++){
+      if(metaJson.sheets[i].properties.title==='📊 Presupuestos'){
+        sheetId=metaJson.sheets[i].properties.sheetId;break;
+      }
+    }
+    if(sheetId===null){toast('Hoja no encontrada');return;}
+    var batchUrl='https://sheets.googleapis.com/v4/spreadsheets/'+SID+':batchUpdate';
+    var r=await fetch(batchUrl,{method:'POST',
+      headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
+      body:JSON.stringify({requests:[{deleteDimension:{range:{
+        sheetId:sheetId,dimension:'ROWS',startIndex:rowIdx,endIndex:rowIdx+1
+      }}}]})});
+    if(!r.ok){var t=await r.text();throw new Error('HTTP '+r.status+': '+t.substring(0,100));}
+    await loadPR();
+    toast('Presupuesto eliminado');
+  }catch(e){toast('Error: '+e.message);}
+}
 
 async function cambiarEstado(nro,nuevoEst){
   var rows=await apiGet('📊 Presupuestos!A11:G500');
@@ -662,17 +818,56 @@ function rendOB(){
   div.innerHTML=h;
 }
 
+function filtVN(){rendVN();}
+
+function clearVNFilters(){
+  document.getElementById('vfd').value='';
+  document.getElementById('vfh').value='';
+  document.getElementById('vsrch').value='';
+  rendVN();
+}
+
+function parseFechaVN(f){
+  // f esta en formato dd/mm/yyyy
+  var p=f.split('/');
+  if(p.length!==3)return null;
+  return new Date(p[2],p[1]-1,p[0]);
+}
+
 function rendVN(){
+  var desde=document.getElementById('vfd')?document.getElementById('vfd').value:'';
+  var hasta=document.getElementById('vfh')?document.getElementById('vfh').value:'';
+  var bus=document.getElementById('vsrch')?document.getElementById('vsrch').value.toLowerCase():'';
+
+  var d=VN.slice().reverse();
+  if(desde){
+    var dD=new Date(desde);
+    d=d.filter(function(v){var fv=parseFechaVN(v.fecha);return fv&&fv>=dD;});
+  }
+  if(hasta){
+    var hD=new Date(hasta);
+    d=d.filter(function(v){var fv=parseFechaVN(v.fecha);return fv&&fv<=hD;});
+  }
+  if(bus){
+    d=d.filter(function(v){return v.cli.toLowerCase().indexOf(bus)!==-1;});
+  }
+
+  // Resumen
+  var totUsd=0;
+  d.forEach(function(v){totUsd+=v.mon==='USD'?v.monto:v.monto/TC;});
+  document.getElementById('vtot-usd').textContent='$'+Math.round(totUsd).toLocaleString();
+  document.getElementById('vtot-cnt').textContent=d.length;
+  document.getElementById('vtot-avg').textContent=d.length?'$'+Math.round(totUsd/d.length).toLocaleString():'-';
+
   var h='';
-  if(VN.length){
+  if(d.length){
     h='<table><tr><th>Fecha</th><th>Obra</th><th>Cliente</th><th>Mon</th><th style="text-align:right">Monto</th><th style="text-align:right">Equiv USD</th><th>Estado</th></tr>';
-    var d=VN.slice().reverse();
     for(var i=0;i<d.length;i++){var v=d[i];
       var eq=v.mon==='USD'?v.monto:Math.round(v.monto/TC);
       h+='<tr><td>'+v.fecha+'</td><td style="font-size:11px;color:var(--gry)">'+v.obra+'</td><td>'+v.cli+'</td><td><span class="bdg '+(v.mon==='USD'?'bg2':'be')+'">'+v.mon+'</span></td><td style="text-align:right;font-family:var(--serif)">$'+v.monto.toLocaleString()+'</td><td style="text-align:right;font-family:var(--serif);color:var(--sage-dkr)">$'+eq.toLocaleString()+'</td><td>'+bdg(v.est)+'</td></tr>';
     }
     h+='</table>';
-  }else{h='<div style="text-align:center;padding:28px;color:var(--gry)">Sin ventas</div>';}
+  }else{h='<div style="text-align:center;padding:28px;color:var(--gry)">Sin ventas en este rango</div>';}
   document.getElementById('vtab').innerHTML=h;
 }
 
@@ -1161,7 +1356,7 @@ function go(id,btn){
   var nbs=document.querySelectorAll('.nb');
   for(var i=0;i<nbs.length;i++)nbs[i].classList.remove('on');
   document.getElementById('sc-'+id).classList.add('on');
-  var tt={dash:'Dashboard',cot:'Nueva cotizacion',pres:'Presupuestos',obras:'Obras',ventas:'Ventas',gastos:'Gastos',costos:'Costos'};
+  var tt={dash:'Dashboard',cot:'Nueva cotizacion',pres:'Presupuestos',obras:'Obras',ventas:'Ventas',gastos:'Gastos',costos:'Costos',clientes:'Clientes'};
   document.getElementById('pt').textContent=tt[id]||id;
   if(btn)btn.classList.add('on');
 }
