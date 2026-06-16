@@ -185,6 +185,7 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
     <div class="nsec">Config</div>
     <button class="nb" onclick="go('costos',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>Costos</button>
     <button class="nb" onclick="go('clientes',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Clientes</button>
+    <button class="nb" onclick="go('impuestos',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Impuestos</button>
   </nav>
   <div class="sb-ft"><div class="u-av" id="uav">G</div><div><div class="u-nm" id="unm">-</div><div class="u-rl">Sistema Bidart</div></div></div>
 </div>
@@ -413,6 +414,128 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
       </div>
     </div>
 
+    <div class="sc" id="sc-impuestos">
+      <div style="display:flex;gap:10px;margin-bottom:18px">
+        <button class="btn" id="imp-tab-sas" onclick="setImpTab('sas')" style="border-color:var(--sage-dkr);color:var(--sage-dkr)">SAS</button>
+        <button class="btn" id="imp-tab-uni" onclick="setImpTab('uni')">Unipersonal</button>
+      </div>
+
+      <div id="imp-sas">
+        <div class="card" style="margin-bottom:14px">
+          <div class="ct">SAS — Sociedad por Acciones Simplificada</div>
+          <div style="font-size:13px;color:var(--gry);line-height:1.7;margin-bottom:14px">
+            Figura juridica habilitada en Uruguay desde 2017. Ideal para empresas pequenas y medianas con socios.
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div style="padding:14px;background:var(--sage-pl);border-radius:8px">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">IRAE</div>
+              <div style="font-family:var(--serif);font-size:22px;color:var(--blk)">25%</div>
+              <div style="font-size:12px;color:var(--gry);margin-top:4px">Impuesto a la Renta de Actividades Economicas sobre la renta neta</div>
+            </div>
+            <div style="padding:14px;background:var(--sage-pl);border-radius:8px">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">IVA</div>
+              <div style="font-family:var(--serif);font-size:22px;color:var(--blk)">22%</div>
+              <div style="font-size:12px;color:var(--gry);margin-top:4px">Tasa basica sobre ventas. Se deduce el IVA compras</div>
+            </div>
+            <div style="padding:14px;background:var(--sage-pl);border-radius:8px">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">IRAE Minimo</div>
+              <div style="font-family:var(--serif);font-size:22px;color:var(--blk)">~$8.000</div>
+              <div style="font-size:12px;color:var(--gry);margin-top:4px">Pago minimo mensual aprox. independiente del resultado (UI indexado)</div>
+            </div>
+            <div style="padding:14px;background:var(--sage-pl);border-radius:8px">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">BPS Empresa</div>
+              <div style="font-family:var(--serif);font-size:22px;color:var(--blk)">7,5%</div>
+              <div style="font-size:12px;color:var(--gry);margin-top:4px">Aporte patronal sobre nomina (si hay empleados)</div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="ct">Distribucion de dividendos</div>
+          <div style="font-size:13px;color:var(--gry);line-height:1.7">
+            Al retirar ganancias como dividendos, el socio paga <strong style="color:var(--blk)">IRPF 7%</strong> sobre los dividendos distribuidos.
+            La empresa ya pago IRAE 25%, por lo que la carga total efectiva sobre la renta es de aprox. <strong style="color:var(--blk)">30,25%</strong>.
+          </div>
+        </div>
+        <div class="card">
+          <div class="ct">Estimacion rapida <span>en base a ingresos ingresados</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+            <div class="fg"><label class="fl">Ingresos anuales (USD)</label><input type="number" id="sas-ing" placeholder="0" oninput="calcSAS()"></div>
+            <div class="fg"><label class="fl">Gastos deducibles (USD)</label><input type="number" id="sas-gas" placeholder="0" oninput="calcSAS()"></div>
+            <div class="fg"><label class="fl">TC USD/UYU</label><input type="number" id="sas-tc" value="43" oninput="calcSAS()"></div>
+          </div>
+          <div id="sas-result" style="display:none;background:var(--blk);color:var(--wht);border-radius:8px;padding:18px">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+              <div><div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Renta neta</div><div style="font-family:var(--serif);font-size:20px" id="sas-r-neta">-</div></div>
+              <div><div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">IRAE estimado</div><div style="font-family:var(--serif);font-size:20px;color:#F0B060" id="sas-r-irae">-</div></div>
+              <div><div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">IVA neto estimado</div><div style="font-family:var(--serif);font-size:20px;color:#F0B060" id="sas-r-iva">-</div></div>
+            </div>
+            <div style="font-size:11px;opacity:.4;margin-top:12px">Estimacion orientativa. Consultar con contador para cifras exactas.</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="imp-uni" style="display:none">
+        <div class="card" style="margin-bottom:14px">
+          <div class="ct">Unipersonal — Trabajador independiente</div>
+          <div style="font-size:13px;color:var(--gry);line-height:1.7;margin-bottom:14px">
+            Figura para personas fisicas que trabajan por cuenta propia. Sin socios. Tributacion directamente en cabeza de la persona.
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div style="padding:14px;background:var(--sage-pl);border-radius:8px">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">IRPF Cat. II</div>
+              <div style="font-family:var(--serif);font-size:22px;color:var(--blk)">0 — 36%</div>
+              <div style="font-size:12px;color:var(--gry);margin-top:4px">Escala progresiva sobre renta neta. Tasa cero hasta aprox. USD 900/mes</div>
+            </div>
+            <div style="padding:14px;background:var(--sage-pl);border-radius:8px">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">IVA</div>
+              <div style="font-family:var(--serif);font-size:22px;color:var(--blk)">22%</div>
+              <div style="font-size:12px;color:var(--gry);margin-top:4px">Igual que SAS. Se deduce IVA compras</div>
+            </div>
+            <div style="padding:14px;background:var(--sage-pl);border-radius:8px">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">BPS (FONASA)</div>
+              <div style="font-family:var(--serif);font-size:22px;color:var(--blk)">~18%</div>
+              <div style="font-size:12px;color:var(--gry);margin-top:4px">Aporte jubilatorio + salud sobre ficto o ingresos reales</div>
+            </div>
+            <div style="padding:14px;background:var(--sage-pl);border-radius:8px">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">Sin IRAE minimo</div>
+              <div style="font-family:var(--serif);font-size:22px;color:var(--blk)">0</div>
+              <div style="font-size:12px;color:var(--gry);margin-top:4px">No paga impuesto minimo si no hay renta positiva</div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="ct">Franjas IRPF 2025 (orientativas)</div>
+          <table>
+            <tr><th>Renta anual (UYU)</th><th>Renta anual (USD aprox)</th><th style="text-align:right">Tasa</th></tr>
+            <tr><td>Hasta $149.604</td><td>Hasta ~USD 3.480</td><td style="text-align:right;color:var(--sage-dkr);font-family:var(--serif)">0%</td></tr>
+            <tr><td>$149.604 — $224.405</td><td>~USD 3.480 — 5.220</td><td style="text-align:right;color:var(--sage-dkr);font-family:var(--serif)">10%</td></tr>
+            <tr><td>$224.405 — $336.608</td><td>~USD 5.220 — 7.830</td><td style="text-align:right;font-family:var(--serif)">15%</td></tr>
+            <tr><td>$336.608 — $448.811</td><td>~USD 7.830 — 10.440</td><td style="text-align:right;font-family:var(--serif)">24%</td></tr>
+            <tr><td>$448.811 — $673.216</td><td>~USD 10.440 — 15.655</td><td style="text-align:right;font-family:var(--serif)">25%</td></tr>
+            <tr><td>$673.216 — $1.009.824</td><td>~USD 15.655 — 23.484</td><td style="text-align:right;font-family:var(--serif)">27%</td></tr>
+            <tr><td>$1.009.824 — $1.683.040</td><td>~USD 23.484 — 39.140</td><td style="text-align:right;font-family:var(--serif)">31%</td></tr>
+            <tr><td>Mas de $1.683.040</td><td>Mas de ~USD 39.140</td><td style="text-align:right;color:var(--rojo);font-family:var(--serif)">36%</td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <div class="ct">Estimacion rapida <span>en base a ingresos ingresados</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+            <div class="fg"><label class="fl">Ingresos anuales (USD)</label><input type="number" id="uni-ing" placeholder="0" oninput="calcUni()"></div>
+            <div class="fg"><label class="fl">Gastos deducibles (USD)</label><input type="number" id="uni-gas" placeholder="0" oninput="calcUni()"></div>
+            <div class="fg"><label class="fl">TC USD/UYU</label><input type="number" id="uni-tc" value="43" oninput="calcUni()"></div>
+          </div>
+          <div id="uni-result" style="display:none;background:var(--blk);color:var(--wht);border-radius:8px;padding:18px">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+              <div><div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Renta neta</div><div style="font-family:var(--serif);font-size:20px" id="uni-r-neta">-</div></div>
+              <div><div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">IRPF estimado</div><div style="font-family:var(--serif);font-size:20px;color:#F0B060" id="uni-r-irpf">-</div></div>
+              <div><div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">BPS estimado</div><div style="font-family:var(--serif);font-size:20px;color:#F0B060" id="uni-r-bps">-</div></div>
+            </div>
+            <div style="font-size:11px;opacity:.4;margin-top:12px">Estimacion orientativa. Consultar con contador para cifras exactas.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 </div>
@@ -530,7 +653,7 @@ async function loadPR(){
 
 async function loadVN(){
   var rows=await apiGet('💵 Ventas!A8:L500');
-  var HEADERS=['Fecha cobro','N° Obra','N\u00b0 Obra','Nombre obra / cliente','Moneda','Estado cobro'];
+  var HEADERS=['Fecha cobro','N Obra','N\u00b0 Obra','Nombre obra / cliente','Moneda','Estado cobro'];
   VN=rows.filter(function(r){
     if(!r[1]) return false;
     // Filtra filas que sean en realidad el encabezado duplicado
@@ -940,11 +1063,14 @@ async function eliminarPres(nro){
   if(!confirm('Eliminar presupuesto '+nro+'? Esta accion no se puede deshacer.'))return;
   try{
     var rows=await apiGet('📊 Presupuestos!A11:N500');
-    var rowIdx=-1;
+    // Collect ALL row indices with this nro (handles duplicates)
+    var indices=[];
     for(var i=0;i<rows.length;i++){
-      if(rows[i][0]&&rows[i][0].toString()===nro){rowIdx=i+10;break;}
+      if(rows[i][0]&&rows[i][0].toString()===nro){
+        indices.push(i+10); // 0-based: row (i+11) in sheet = index i+10
+      }
     }
-    if(rowIdx===-1){toast('No encontrado');return;}
+    if(!indices.length){toast('No encontrado');return;}
     var meta=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SID,
       {headers:{Authorization:'Bearer '+TOK}});
     var metaJson=await meta.json();
@@ -955,12 +1081,15 @@ async function eliminarPres(nro){
       }
     }
     if(sheetId===null){toast('Hoja no encontrada');return;}
+    // Delete from bottom to top so indices don't shift
+    indices.sort(function(a,b){return b-a;});
+    var requests=indices.map(function(idx){
+      return {deleteDimension:{range:{sheetId:sheetId,dimension:'ROWS',startIndex:idx,endIndex:idx+1}}};
+    });
     var batchUrl='https://sheets.googleapis.com/v4/spreadsheets/'+SID+':batchUpdate';
     var r=await fetch(batchUrl,{method:'POST',
       headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
-      body:JSON.stringify({requests:[{deleteDimension:{range:{
-        sheetId:sheetId,dimension:'ROWS',startIndex:rowIdx,endIndex:rowIdx+1
-      }}}]})});
+      body:JSON.stringify({requests:requests})});
     if(!r.ok){var t=await r.text();throw new Error('HTTP '+r.status+': '+t.substring(0,100));}
     await loadPR();
     toast('Presupuesto eliminado');
@@ -1572,6 +1701,58 @@ async function genPDF(){
   setTimeout(function(){win.print();},500);
 }
 
+function setImpTab(tab){
+  document.getElementById('imp-sas').style.display=tab==='sas'?'block':'none';
+  document.getElementById('imp-uni').style.display=tab==='uni'?'block':'none';
+  document.getElementById('imp-tab-sas').style.cssText=tab==='sas'?'border-color:var(--sage-dkr);color:var(--sage-dkr)':'';
+  document.getElementById('imp-tab-uni').style.cssText=tab==='uni'?'border-color:var(--sage-dkr);color:var(--sage-dkr)':'';
+}
+
+function calcSAS(){
+  var ing=parseFloat(document.getElementById('sas-ing').value)||0;
+  var gas=parseFloat(document.getElementById('sas-gas').value)||0;
+  var tc=parseFloat(document.getElementById('sas-tc').value)||43;
+  if(!ing){document.getElementById('sas-result').style.display='none';return;}
+  var rentaUSD=ing-gas;
+  var irae=Math.max(0,rentaUSD*0.25);
+  var ivaVentas=ing*0.22;
+  var ivaCompras=gas*0.22;
+  var ivaNeto=Math.max(0,ivaVentas-ivaCompras);
+  document.getElementById('sas-r-neta').textContent='$ '+Math.round(rentaUSD).toLocaleString()+' USD';
+  document.getElementById('sas-r-irae').textContent='$ '+Math.round(irae).toLocaleString()+' USD';
+  document.getElementById('sas-r-iva').textContent='$ '+Math.round(ivaNeto).toLocaleString()+' USD';
+  document.getElementById('sas-result').style.display='block';
+}
+
+function calcUni(){
+  var ing=parseFloat(document.getElementById('uni-ing').value)||0;
+  var gas=parseFloat(document.getElementById('uni-gas').value)||0;
+  var tc=parseFloat(document.getElementById('uni-tc').value)||43;
+  if(!ing){document.getElementById('uni-result').style.display='none';return;}
+  var rentaUSD=Math.max(0,ing-gas);
+  var rentaUYU=rentaUSD*tc;
+  // IRPF progressive scale UYU anual 2025
+  var franjas=[
+    [149604,0],[224405,0.10],[336608,0.15],[448811,0.24],
+    [673216,0.25],[1009824,0.27],[1683040,0.31],[Infinity,0.36]
+  ];
+  var irpfUYU=0;var prev=0;
+  for(var i=0;i<franjas.length;i++){
+    var lim=franjas[i][0];var tasa=franjas[i][1];
+    if(rentaUYU<=prev)break;
+    var tramo=Math.min(rentaUYU,lim)-prev;
+    irpfUYU+=tramo*tasa;
+    prev=lim;
+  }
+  var irpfUSD=irpfUYU/tc;
+  var bpsUSD=ing*0.18;
+  var ivaVentas=ing*0.22;var ivaCompras=gas*0.22;
+  document.getElementById('uni-r-neta').textContent='$ '+Math.round(rentaUSD).toLocaleString()+' USD';
+  document.getElementById('uni-r-irpf').textContent='$ '+Math.round(irpfUSD).toLocaleString()+' USD';
+  document.getElementById('uni-r-bps').textContent='$ '+Math.round(bpsUSD).toLocaleString()+' USD';
+  document.getElementById('uni-result').style.display='block';
+}
+
 function saveCfg(){
   TC=parseFloat(document.getElementById('tc').value)||43;
   PE=parseFloat(document.getElementById('pesp').value)||3500;
@@ -1584,7 +1765,7 @@ function go(id,btn){
   var nbs=document.querySelectorAll('.nb');
   for(var i=0;i<nbs.length;i++)nbs[i].classList.remove('on');
   document.getElementById('sc-'+id).classList.add('on');
-  var tt={dash:'Dashboard',cot:'Nueva cotizacion',pres:'Presupuestos',obras:'Obras',ventas:'Ventas',gastos:'Gastos',costos:'Costos',clientes:'Clientes'};
+  var tt={dash:'Dashboard',cot:'Nueva cotizacion',pres:'Presupuestos',obras:'Obras',ventas:'Ventas',gastos:'Gastos',costos:'Costos',clientes:'Clientes',impuestos:'Impuestos'};
   document.getElementById('pt').textContent=tt[id]||id;
   if(btn)btn.classList.add('on');
 }
