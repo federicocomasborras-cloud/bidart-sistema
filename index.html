@@ -420,121 +420,163 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
         <button class="btn" id="imp-tab-uni" onclick="setImpTab('uni')">Unipersonal</button>
       </div>
 
+      <!-- ═══ SAS ═══ -->
       <div id="imp-sas">
         <div class="card" style="margin-bottom:14px">
-          <div class="ct">SAS — Sociedad por Acciones Simplificada</div>
-          <div style="font-size:13px;color:var(--gry);line-height:1.7;margin-bottom:14px">
-            Figura juridica habilitada en Uruguay desde 2017. Ideal para empresas pequenas y medianas con socios.
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="ct">SAS — Impuestos principales</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
             <div style="padding:14px;background:var(--sage-pl);border-radius:8px">
-              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">IRAE</div>
-              <div style="font-family:var(--serif);font-size:22px;color:var(--blk)">25%</div>
-              <div style="font-size:12px;color:var(--gry);margin-top:4px">Impuesto a la Renta de Actividades Economicas sobre la renta neta</div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">IRAE ficto</div>
+              <div style="font-family:var(--serif);font-size:22px">9%</div>
+              <div style="font-size:11px;color:var(--gry);margin-top:4px">25% x 36% renta ficto = 9% efectivo sobre ingresos</div>
             </div>
             <div style="padding:14px;background:var(--sage-pl);border-radius:8px">
-              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">IVA</div>
-              <div style="font-family:var(--serif);font-size:22px;color:var(--blk)">22%</div>
-              <div style="font-size:12px;color:var(--gry);margin-top:4px">Tasa basica sobre ventas. Se deduce el IVA compras</div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">IVA ventas</div>
+              <div style="font-family:var(--serif);font-size:22px">22%</div>
+              <div style="font-size:11px;color:var(--gry);margin-top:4px">Mensual — se resta IVA compras</div>
             </div>
             <div style="padding:14px;background:var(--sage-pl);border-radius:8px">
-              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">IRAE Minimo</div>
-              <div style="font-family:var(--serif);font-size:22px;color:var(--blk)">~$8.000</div>
-              <div style="font-size:12px;color:var(--gry);margin-top:4px">Pago minimo mensual aprox. independiente del resultado (UI indexado)</div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">IRAE minimo mensual</div>
+              <div style="font-family:var(--serif);font-size:22px">~$8.000</div>
+              <div style="font-size:11px;color:var(--gry);margin-top:4px">UYU aprox. indexado en UI</div>
             </div>
-            <div style="padding:14px;background:var(--sage-pl);border-radius:8px">
-              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">BPS Empresa</div>
-              <div style="font-family:var(--serif);font-size:22px;color:var(--blk)">7,5%</div>
-              <div style="font-size:12px;color:var(--gry);margin-top:4px">Aporte patronal sobre nomina (si hay empleados)</div>
+            <div style="padding:14px;background:var(--rojo-bg);border-radius:8px">
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">Dividendos (IRPF socio)</div>
+              <div style="font-family:var(--serif);font-size:22px">7%</div>
+              <div style="font-size:11px;color:var(--gry);margin-top:4px">Al retirar ganancias</div>
             </div>
           </div>
         </div>
-        <div class="card" style="margin-bottom:14px">
-          <div class="ct">Distribucion de dividendos</div>
-          <div style="font-size:13px;color:var(--gry);line-height:1.7">
-            Al retirar ganancias como dividendos, el socio paga <strong style="color:var(--blk)">IRPF 7%</strong> sobre los dividendos distribuidos.
-            La empresa ya pago IRAE 25%, por lo que la carga total efectiva sobre la renta es de aprox. <strong style="color:var(--blk)">30,25%</strong>.
-          </div>
-        </div>
+
         <div class="card">
-          <div class="ct">Estimacion rapida <span>en base a ingresos ingresados</span></div>
+          <div class="ct">Calculadora de anticipos mensuales <span>SAS</span></div>
+          <div style="font-size:12px;color:var(--gry);margin-bottom:14px;line-height:1.6;background:var(--ambar-bg);padding:10px 14px;border-radius:6px">
+            Regimen ficto: la renta imponible se estima en el <strong>36% de los ingresos sin IVA</strong>,
+            sin necesidad de justificar gastos. IRAE = 25% sobre esa renta.
+            BPS calculado sobre ficto de 15 BPC como socio director.
+          </div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
-            <div class="fg"><label class="fl">Ingresos anuales (USD)</label><input type="number" id="sas-ing" placeholder="0" oninput="calcSAS()"></div>
-            <div class="fg"><label class="fl">Gastos deducibles (USD)</label><input type="number" id="sas-gas" placeholder="0" oninput="calcSAS()"></div>
+            <div class="fg"><label class="fl">Ingresos mes con IVA (UYU)</label><input type="number" id="sas-ing-m" placeholder="0" oninput="calcSAS()"></div>
+            <div class="fg"><label class="fl">Compras con IVA (UYU)</label><input type="number" id="sas-gas-m" placeholder="0" oninput="calcSAS()"></div>
             <div class="fg"><label class="fl">TC USD/UYU</label><input type="number" id="sas-tc" value="43" oninput="calcSAS()"></div>
           </div>
-          <div id="sas-result" style="display:none;background:var(--blk);color:var(--wht);border-radius:8px;padding:18px">
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
-              <div><div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Renta neta</div><div style="font-family:var(--serif);font-size:20px" id="sas-r-neta">-</div></div>
-              <div><div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">IRAE estimado</div><div style="font-family:var(--serif);font-size:20px;color:#F0B060" id="sas-r-irae">-</div></div>
-              <div><div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">IVA neto estimado</div><div style="font-family:var(--serif);font-size:20px;color:#F0B060" id="sas-r-iva">-</div></div>
+          <div id="sas-result" style="display:none">
+            <div style="background:var(--blk);color:var(--wht);border-radius:10px;padding:20px;margin-bottom:12px">
+              <div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px">Resumen del mes</div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+                <div><div style="font-size:10px;opacity:.45;margin-bottom:4px">Ingresos netos</div><div style="font-family:var(--serif);font-size:18px" id="sas-r-ing">-</div></div>
+                <div><div style="font-size:10px;opacity:.45;margin-bottom:4px">Renta estimada mes</div><div style="font-family:var(--serif);font-size:18px" id="sas-r-renta">-</div></div>
+                <div><div style="font-size:10px;opacity:.45;margin-bottom:4px">IVA a pagar DGI</div><div style="font-family:var(--serif);font-size:18px;color:#F0B060" id="sas-r-iva">-</div></div>
+                <div><div style="font-size:10px;opacity:.45;margin-bottom:4px">Anticipo IRAE</div><div style="font-family:var(--serif);font-size:18px;color:#F0B060" id="sas-r-irae">-</div></div>
+              </div>
             </div>
-            <div style="font-size:11px;opacity:.4;margin-top:12px">Estimacion orientativa. Consultar con contador para cifras exactas.</div>
+            <div style="background:var(--rojo-bg);border-radius:10px;padding:18px;margin-bottom:12px">
+              <div style="font-size:10px;color:var(--rojo);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;font-weight:500">Total a apartar por mes</div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <div style="font-family:var(--serif);font-size:32px;color:var(--blk)" id="sas-r-total">-</div>
+                  <div style="font-size:11px;color:var(--gry);margin-top:4px">IVA + Anticipo IRAE + Minimo IRAE</div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-size:11px;color:var(--gry);margin-bottom:4px">Equivalente USD</div>
+                  <div style="font-family:var(--serif);font-size:20px;color:var(--gry)" id="sas-r-total-usd">-</div>
+                </div>
+              </div>
+            </div>
+            <div style="background:var(--sage-pl);border-radius:8px;padding:14px">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:10px;font-weight:500">Detalle de pagos</div>
+              <div id="sas-detalle" style="font-size:13px;line-height:2"></div>
+            </div>
+            <div style="font-size:11px;color:var(--gry);margin-top:10px;font-style:italic">Estimacion orientativa basada en el mes ingresado. Consultar con contador para liquidaciones exactas.</div>
           </div>
         </div>
       </div>
 
+      <!-- ═══ UNIPERSONAL ═══ -->
       <div id="imp-uni" style="display:none">
         <div class="card" style="margin-bottom:14px">
-          <div class="ct">Unipersonal — Trabajador independiente</div>
-          <div style="font-size:13px;color:var(--gry);line-height:1.7;margin-bottom:14px">
-            Figura para personas fisicas que trabajan por cuenta propia. Sin socios. Tributacion directamente en cabeza de la persona.
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="ct">Unipersonal — Impuestos principales</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
             <div style="padding:14px;background:var(--sage-pl);border-radius:8px">
-              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">IRPF Cat. II</div>
-              <div style="font-family:var(--serif);font-size:22px;color:var(--blk)">0 — 36%</div>
-              <div style="font-size:12px;color:var(--gry);margin-top:4px">Escala progresiva sobre renta neta. Tasa cero hasta aprox. USD 900/mes</div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">IRPF Cat. II</div>
+              <div style="font-family:var(--serif);font-size:22px">0 — 36%</div>
+              <div style="font-size:11px;color:var(--gry);margin-top:4px">Escala progresiva anual</div>
             </div>
             <div style="padding:14px;background:var(--sage-pl);border-radius:8px">
-              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">IVA</div>
-              <div style="font-family:var(--serif);font-size:22px;color:var(--blk)">22%</div>
-              <div style="font-size:12px;color:var(--gry);margin-top:4px">Igual que SAS. Se deduce IVA compras</div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">IVA ventas</div>
+              <div style="font-family:var(--serif);font-size:22px">22%</div>
+              <div style="font-size:11px;color:var(--gry);margin-top:4px">Mensual — se resta IVA compras</div>
             </div>
             <div style="padding:14px;background:var(--sage-pl);border-radius:8px">
-              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">BPS (FONASA)</div>
-              <div style="font-family:var(--serif);font-size:22px;color:var(--blk)">~18%</div>
-              <div style="font-size:12px;color:var(--gry);margin-top:4px">Aporte jubilatorio + salud sobre ficto o ingresos reales</div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">BPS / FONASA</div>
+              <div style="font-family:var(--serif);font-size:22px">~18%</div>
+              <div style="font-size:11px;color:var(--gry);margin-top:4px">Mensual sobre ficto o real</div>
             </div>
             <div style="padding:14px;background:var(--sage-pl);border-radius:8px">
-              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">Sin IRAE minimo</div>
-              <div style="font-family:var(--serif);font-size:22px;color:var(--blk)">0</div>
-              <div style="font-size:12px;color:var(--gry);margin-top:4px">No paga impuesto minimo si no hay renta positiva</div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:6px">Sin minimo IRAE</div>
+              <div style="font-family:var(--serif);font-size:22px">$0</div>
+              <div style="font-size:11px;color:var(--gry);margin-top:4px">No paga si no hay renta</div>
             </div>
           </div>
+          <div class="card" style="border:none;padding:0">
+            <div style="font-size:12px;font-weight:500;margin-bottom:8px;color:var(--blk)">Franjas IRPF 2025 (renta anual en UYU)</div>
+            <table style="font-size:12px">
+              <tr><th>Renta anual (UYU)</th><th>Aprox. USD/ano</th><th style="text-align:right">Tasa</th></tr>
+              <tr><td>Hasta $149.604</td><td>Hasta ~USD 3.480</td><td style="text-align:right;color:var(--sage-dkr);font-family:var(--serif)">0%</td></tr>
+              <tr><td>$149.604 - $224.405</td><td>~USD 3.480 - 5.220</td><td style="text-align:right;font-family:var(--serif)">10%</td></tr>
+              <tr><td>$224.405 - $336.608</td><td>~USD 5.220 - 7.830</td><td style="text-align:right;font-family:var(--serif)">15%</td></tr>
+              <tr><td>$336.608 - $448.811</td><td>~USD 7.830 - 10.440</td><td style="text-align:right;font-family:var(--serif)">24%</td></tr>
+              <tr><td>$448.811 - $673.216</td><td>~USD 10.440 - 15.655</td><td style="text-align:right;font-family:var(--serif)">25%</td></tr>
+              <tr><td>$673.216 - $1.009.824</td><td>~USD 15.655 - 23.484</td><td style="text-align:right;font-family:var(--serif)">27%</td></tr>
+              <tr><td>$1.009.824 - $1.683.040</td><td>~USD 23.484 - 39.140</td><td style="text-align:right;font-family:var(--serif)">31%</td></tr>
+              <tr><td>Mas de $1.683.040</td><td>Mas de ~USD 39.140</td><td style="text-align:right;color:var(--rojo);font-family:var(--serif)">36%</td></tr>
+            </table>
+          </div>
         </div>
-        <div class="card" style="margin-bottom:14px">
-          <div class="ct">Franjas IRPF 2025 (orientativas)</div>
-          <table>
-            <tr><th>Renta anual (UYU)</th><th>Renta anual (USD aprox)</th><th style="text-align:right">Tasa</th></tr>
-            <tr><td>Hasta $149.604</td><td>Hasta ~USD 3.480</td><td style="text-align:right;color:var(--sage-dkr);font-family:var(--serif)">0%</td></tr>
-            <tr><td>$149.604 — $224.405</td><td>~USD 3.480 — 5.220</td><td style="text-align:right;color:var(--sage-dkr);font-family:var(--serif)">10%</td></tr>
-            <tr><td>$224.405 — $336.608</td><td>~USD 5.220 — 7.830</td><td style="text-align:right;font-family:var(--serif)">15%</td></tr>
-            <tr><td>$336.608 — $448.811</td><td>~USD 7.830 — 10.440</td><td style="text-align:right;font-family:var(--serif)">24%</td></tr>
-            <tr><td>$448.811 — $673.216</td><td>~USD 10.440 — 15.655</td><td style="text-align:right;font-family:var(--serif)">25%</td></tr>
-            <tr><td>$673.216 — $1.009.824</td><td>~USD 15.655 — 23.484</td><td style="text-align:right;font-family:var(--serif)">27%</td></tr>
-            <tr><td>$1.009.824 — $1.683.040</td><td>~USD 23.484 — 39.140</td><td style="text-align:right;font-family:var(--serif)">31%</td></tr>
-            <tr><td>Mas de $1.683.040</td><td>Mas de ~USD 39.140</td><td style="text-align:right;color:var(--rojo);font-family:var(--serif)">36%</td></tr>
-          </table>
-        </div>
+
         <div class="card">
-          <div class="ct">Estimacion rapida <span>en base a ingresos ingresados</span></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
-            <div class="fg"><label class="fl">Ingresos anuales (USD)</label><input type="number" id="uni-ing" placeholder="0" oninput="calcUni()"></div>
-            <div class="fg"><label class="fl">Gastos deducibles (USD)</label><input type="number" id="uni-gas" placeholder="0" oninput="calcUni()"></div>
+          <div class="ct">Calculadora de anticipos mensuales <span>Unipersonal</span></div>
+          <div style="font-size:12px;color:var(--gry);margin-bottom:14px;line-height:1.6">
+            IRPF se paga en anticipos mensuales (1/12 del estimado anual). BPS e IVA se pagan mensualmente.
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+            <div class="fg"><label class="fl">Ingresos mes (UYU)</label><input type="number" id="uni-ing-m" placeholder="0" oninput="calcUni()"></div>
+            <div class="fg"><label class="fl">Compras/gastos mes (UYU)</label><input type="number" id="uni-gas-m" placeholder="0" oninput="calcUni()"></div>
+            <div class="fg"><label class="fl">Otros gastos sin IVA (UYU)</label><input type="number" id="uni-gas-s" placeholder="0" oninput="calcUni()"></div>
             <div class="fg"><label class="fl">TC USD/UYU</label><input type="number" id="uni-tc" value="43" oninput="calcUni()"></div>
           </div>
-          <div id="uni-result" style="display:none;background:var(--blk);color:var(--wht);border-radius:8px;padding:18px">
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
-              <div><div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Renta neta</div><div style="font-family:var(--serif);font-size:20px" id="uni-r-neta">-</div></div>
-              <div><div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">IRPF estimado</div><div style="font-family:var(--serif);font-size:20px;color:#F0B060" id="uni-r-irpf">-</div></div>
-              <div><div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">BPS estimado</div><div style="font-family:var(--serif);font-size:20px;color:#F0B060" id="uni-r-bps">-</div></div>
+          <div id="uni-result" style="display:none">
+            <div style="background:var(--blk);color:var(--wht);border-radius:10px;padding:20px;margin-bottom:12px">
+              <div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px">Resumen del mes</div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+                <div><div style="font-size:10px;opacity:.45;margin-bottom:4px">Ingresos netos</div><div style="font-family:var(--serif);font-size:18px" id="uni-r-ing">-</div></div>
+                <div><div style="font-size:10px;opacity:.45;margin-bottom:4px">Renta estimada mes</div><div style="font-family:var(--serif);font-size:18px" id="uni-r-renta">-</div></div>
+                <div><div style="font-size:10px;opacity:.45;margin-bottom:4px">IVA a pagar DGI</div><div style="font-family:var(--serif);font-size:18px;color:#F0B060" id="uni-r-iva">-</div></div>
+                <div><div style="font-size:10px;opacity:.45;margin-bottom:4px">Anticipo IRPF</div><div style="font-family:var(--serif);font-size:18px;color:#F0B060" id="uni-r-irpf">-</div></div>
+              </div>
             </div>
-            <div style="font-size:11px;opacity:.4;margin-top:12px">Estimacion orientativa. Consultar con contador para cifras exactas.</div>
+            <div style="background:var(--rojo-bg);border-radius:10px;padding:18px;margin-bottom:12px">
+              <div style="font-size:10px;color:var(--rojo);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;font-weight:500">Total a apartar por mes</div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <div style="font-family:var(--serif);font-size:32px;color:var(--blk)" id="uni-r-total">-</div>
+                  <div style="font-size:11px;color:var(--gry);margin-top:4px">IVA + Anticipo IRPF + BPS</div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-size:11px;color:var(--gry);margin-bottom:4px">Equivalente USD</div>
+                  <div style="font-family:var(--serif);font-size:20px;color:var(--gry)" id="uni-r-total-usd">-</div>
+                </div>
+              </div>
+            </div>
+            <div style="background:var(--sage-pl);border-radius:8px;padding:14px">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:10px;font-weight:500">Detalle de pagos</div>
+              <div id="uni-detalle" style="font-size:13px;line-height:2"></div>
+            </div>
+            <div style="font-size:11px;color:var(--gry);margin-top:10px;font-style:italic">Estimacion orientativa. Consultar con contador para liquidaciones exactas.</div>
           </div>
         </div>
       </div>
-    </div>
+    </div>    </div>
 
   </div>
 </div>
@@ -1708,48 +1750,170 @@ function setImpTab(tab){
   document.getElementById('imp-tab-uni').style.cssText=tab==='uni'?'border-color:var(--sage-dkr);color:var(--sage-dkr)':'';
 }
 
+function fmtUYU(n){ return '$'+Math.round(n).toLocaleString('es-UY')+' UYU'; }
+function fmtUSD(n,tc){ return '~ USD '+Math.round(n/tc).toLocaleString(); }
+
 function calcSAS(){
-  var ing=parseFloat(document.getElementById('sas-ing').value)||0;
-  var gas=parseFloat(document.getElementById('sas-gas').value)||0;
+  var ing=parseFloat(document.getElementById('sas-ing-m').value)||0;
+  var gasIVA=parseFloat(document.getElementById('sas-gas-m').value)||0;
   var tc=parseFloat(document.getElementById('sas-tc').value)||43;
   if(!ing){document.getElementById('sas-result').style.display='none';return;}
-  var rentaUSD=ing-gas;
-  var irae=Math.max(0,rentaUSD*0.25);
-  var ivaVentas=ing*0.22;
-  var ivaCompras=gas*0.22;
+
+  // -- REGIMEN FICTO --
+  // Ingresos sin IVA (base imponible)
+  var ingSinIVA=ing/1.22;
+  var gasSinIVA=gasIVA/1.22;
+
+  // IVA: mensual
+  var ivaVentas=ingSinIVA*0.22;
+  var ivaCompras=gasSinIVA*0.22;
   var ivaNeto=Math.max(0,ivaVentas-ivaCompras);
-  document.getElementById('sas-r-neta').textContent='$ '+Math.round(rentaUSD).toLocaleString()+' USD';
-  document.getElementById('sas-r-irae').textContent='$ '+Math.round(irae).toLocaleString()+' USD';
-  document.getElementById('sas-r-iva').textContent='$ '+Math.round(ivaNeto).toLocaleString()+' USD';
+
+  // IRAE ficto: renta presunta = 36% de ingresos sin IVA
+  // Tasa IRAE: 25% sobre renta presunta
+  var rentaFictoMes=ingSinIVA*0.36;
+  var rentaFictoAnual=rentaFictoMes*12;
+  var iraeAnualFicto=rentaFictoAnual*0.25;
+  var iraeAnticipo=iraeAnualFicto/12;
+  var iraeMin=8000;
+  var iraeTotal=Math.max(iraeAnticipo,iraeMin);
+
+  // BPS Socio Director (ficto BPS sobre sueldo ficto director)
+  // El ficto BPS se calcula sobre 15 BPC mensuales (aprox) como ficto de actividad
+  // BPC 2025 aprox = $6.756 UYU
+  // Ficto BPS director: 15 BPC = ~$101.340 UYU/mes
+  // Aporte personal: 15% jubilatorio + 3% FRL + FONASA segun salario
+  // Aporte patronal: 7.5% sobre ficto
+  var BPC=6756;
+  var fictoSalDir=15*BPC;
+  var aportePersonal=fictoSalDir*(0.15+0.03+0.06); // jubilatorio+FRL+FONASA basico
+  var aportePatronal=fictoSalDir*0.075;
+  var bpsTotal=aportePersonal+aportePatronal;
+
+  // IRPF Cat I (dividendos) - orientativo si retira ganancias
+  // Se calcula sobre renta neta despues de IRAE. Solo informativo.
+  var dividendoEst=Math.max(0,rentaFictoAnual-iraeAnualFicto);
+  var irpfDividendoAnual=dividendoEst*0.07;
+  var irpfDividendoMes=irpfDividendoAnual/12;
+
+  var totalObligatorio=ivaNeto+iraeTotal+bpsTotal;
+  var totalConDividendo=totalObligatorio+irpfDividendoMes;
+
+  document.getElementById('sas-r-ing').textContent=fmtUYU(ingSinIVA);
+  document.getElementById('sas-r-renta').textContent=fmtUYU(rentaFictoMes)+' (36% ficto)';
+  document.getElementById('sas-r-iva').textContent=fmtUYU(ivaNeto);
+  document.getElementById('sas-r-irae').textContent=fmtUYU(iraeTotal);
+  document.getElementById('sas-r-total').textContent=fmtUYU(totalObligatorio);
+  document.getElementById('sas-r-total-usd').textContent=fmtUSD(totalObligatorio,tc);
+
+  var pct=Math.round(totalObligatorio/ing*100);
+  var det='';
+  det+='<div style="font-size:11px;font-weight:500;color:var(--blk);margin-bottom:8px">REGIMEN FICTO - Vidrieria (actividad industrial/comercial)</div>';
+
+  det+='<div style="font-weight:500;color:var(--sage-dkr);margin:8px 0 4px">IVA mensual</div>';
+  det+='<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gry-lt);padding:3px 0"><span>IVA ventas (22% x ingresos sin IVA)</span><strong>'+fmtUYU(ivaVentas)+'</strong></div>';
+  det+='<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gry-lt);padding:3px 0"><span>(-) Credito IVA compras</span><strong style="color:var(--sage-dkr)">- '+fmtUYU(ivaCompras)+'</strong></div>';
+  det+='<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gry-lt);padding:3px 0;font-weight:500"><span>IVA neto a pagar (DGI)</span><strong style="color:var(--rojo)">'+fmtUYU(ivaNeto)+'</strong></div>';
+
+  det+='<div style="font-weight:500;color:var(--sage-dkr);margin:10px 0 4px">IRAE ficto mensual</div>';
+  det+='<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gry-lt);padding:3px 0"><span>Renta presunta ficto (36% ingresos)</span><strong>'+fmtUYU(rentaFictoMes)+'</strong></div>';
+  det+='<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gry-lt);padding:3px 0"><span>IRAE anual estimado (25% renta ficto)</span><strong>'+fmtUYU(iraeAnualFicto)+'</strong></div>';
+  det+='<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gry-lt);padding:3px 0"><span>Anticipo mensual (1/12)</span><strong>'+fmtUYU(iraeAnticipo)+'</strong></div>';
+  det+='<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gry-lt);padding:3px 0"><span>Minimo IRAE mensual</span><strong>'+fmtUYU(iraeMin)+'</strong></div>';
+  det+='<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gry-lt);padding:3px 0;font-weight:500"><span>Anticipo IRAE a pagar (mayor de los dos)</span><strong style="color:var(--rojo)">'+fmtUYU(iraeTotal)+'</strong></div>';
+
+  det+='<div style="font-weight:500;color:var(--sage-dkr);margin:10px 0 4px">BPS Socio Director mensual (ficto 15 BPC)</div>';
+  det+='<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gry-lt);padding:3px 0"><span>Ficto salario director (15 BPC x $'+BPC+')</span><strong>'+fmtUYU(fictoSalDir)+'</strong></div>';
+  det+='<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gry-lt);padding:3px 0"><span>Aporte personal (24% jubil+FRL+FONASA)</span><strong>'+fmtUYU(aportePersonal)+'</strong></div>';
+  det+='<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gry-lt);padding:3px 0;font-weight:500"><span>Aporte patronal empresa (7.5%)</span><strong>'+fmtUYU(aportePatronal)+'</strong></div>';
+  det+='<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gry-lt);padding:3px 0;font-weight:500"><span>BPS total a pagar</span><strong style="color:var(--rojo)">'+fmtUYU(bpsTotal)+'</strong></div>';
+
+  det+='<div style="font-weight:500;color:var(--ambar);margin:10px 0 4px">IRPF dividendos (orientativo si retira ganancias)</div>';
+  det+='<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gry-lt);padding:3px 0"><span>Dividendo estimado anual (renta ficto - IRAE)</span><strong>'+fmtUYU(dividendoEst)+'</strong></div>';
+  det+='<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gry-lt);padding:3px 0"><span>IRPF dividendos anual (7%)</span><strong>'+fmtUYU(irpfDividendoAnual)+'</strong></div>';
+  det+='<div style="display:flex;justify-content:space-between;padding:3px 0"><span>Estimado mensual</span><strong style="color:var(--ambar)">'+fmtUYU(irpfDividendoMes)+'</strong></div>';
+
+  det+='<div style="margin-top:14px;padding:12px;background:var(--blk);color:var(--wht);border-radius:8px;display:flex;justify-content:space-between;align-items:center">';
+  det+='<div><div style="font-size:10px;opacity:.5;margin-bottom:4px">CARGA FISCAL TOTAL (obligatorio) sobre ingresos brutos</div>';
+  det+='<div style="font-family:var(--serif);font-size:22px">'+fmtUYU(totalObligatorio)+' <span style="font-size:14px;opacity:.6">('+pct+'%)</span></div></div>';
+  det+='<div style="text-align:right"><div style="font-size:10px;opacity:.5;margin-bottom:4px">USD equiv.</div><div style="font-family:var(--serif);font-size:18px">'+fmtUSD(totalObligatorio,tc)+'</div></div>';
+  det+='</div>';
+
+  document.getElementById('sas-detalle').innerHTML=det;
   document.getElementById('sas-result').style.display='block';
 }
 
-function calcUni(){
-  var ing=parseFloat(document.getElementById('uni-ing').value)||0;
-  var gas=parseFloat(document.getElementById('uni-gas').value)||0;
-  var tc=parseFloat(document.getElementById('uni-tc').value)||43;
-  if(!ing){document.getElementById('uni-result').style.display='none';return;}
-  var rentaUSD=Math.max(0,ing-gas);
-  var rentaUYU=rentaUSD*tc;
-  // IRPF progressive scale UYU anual 2025
+function calcIRPF(rentaAnualUYU){
   var franjas=[
     [149604,0],[224405,0.10],[336608,0.15],[448811,0.24],
     [673216,0.25],[1009824,0.27],[1683040,0.31],[Infinity,0.36]
   ];
-  var irpfUYU=0;var prev=0;
+  var impuesto=0;var prev=0;
   for(var i=0;i<franjas.length;i++){
     var lim=franjas[i][0];var tasa=franjas[i][1];
-    if(rentaUYU<=prev)break;
-    var tramo=Math.min(rentaUYU,lim)-prev;
-    irpfUYU+=tramo*tasa;
+    if(rentaAnualUYU<=prev)break;
+    var tramo=Math.min(rentaAnualUYU,lim)-prev;
+    impuesto+=tramo*tasa;
     prev=lim;
   }
-  var irpfUSD=irpfUYU/tc;
-  var bpsUSD=ing*0.18;
-  var ivaVentas=ing*0.22;var ivaCompras=gas*0.22;
-  document.getElementById('uni-r-neta').textContent='$ '+Math.round(rentaUSD).toLocaleString()+' USD';
-  document.getElementById('uni-r-irpf').textContent='$ '+Math.round(irpfUSD).toLocaleString()+' USD';
-  document.getElementById('uni-r-bps').textContent='$ '+Math.round(bpsUSD).toLocaleString()+' USD';
+  return impuesto;
+}
+
+function calcUni(){
+  var ing=parseFloat(document.getElementById('uni-ing-m').value)||0;
+  var gasIVA=parseFloat(document.getElementById('uni-gas-m').value)||0;
+  var gasSinIVA=parseFloat(document.getElementById('uni-gas-s').value)||0;
+  var tc=parseFloat(document.getElementById('uni-tc').value)||43;
+  if(!ing){document.getElementById('uni-result').style.display='none';return;}
+
+  // IVA
+  var ivaVentas=ing*0.22;
+  var ivaCompras=gasIVA*0.22;
+  var ivaNeto=Math.max(0,ivaVentas-ivaCompras);
+
+  // Ingresos sin IVA
+  var ingNeto=ing/(1+0.22);
+  var gasNeto=gasIVA/(1+0.22)+gasSinIVA;
+  var rentaMes=Math.max(0,ingNeto-gasNeto);
+  var rentaAnualUYU=rentaMes*12;
+
+  // IRPF anual con escala progresiva / 12 para anticipo mensual
+  var irpfAnual=calcIRPF(rentaAnualUYU);
+  var irpfMensual=irpfAnual/12;
+
+  // BPS mensual: 18% sobre ingresos netos mensuales
+  var bpsMensual=ingNeto*0.18;
+
+  var totalMes=ivaNeto+irpfMensual+bpsMensual;
+
+  document.getElementById('uni-r-ing').textContent=fmtUYU(ing);
+  document.getElementById('uni-r-renta').textContent=fmtUYU(rentaMes);
+  document.getElementById('uni-r-iva').textContent=fmtUYU(ivaNeto);
+  document.getElementById('uni-r-irpf').textContent=fmtUYU(irpfMensual);
+  document.getElementById('uni-r-total').textContent=fmtUYU(totalMes);
+  document.getElementById('uni-r-total-usd').textContent=fmtUSD(totalMes,tc);
+
+  // Tasa marginal aplicable
+  var tasaMarginal=0;
+  var franjas2=[
+    [149604,0],[224405,0.10],[336608,0.15],[448811,0.24],
+    [673216,0.25],[1009824,0.27],[1683040,0.31],[Infinity,0.36]
+  ];
+  var prev2=0;
+  for(var i=0;i<franjas2.length;i++){
+    if(rentaAnualUYU>prev2&&rentaAnualUYU<=franjas2[i][0]){tasaMarginal=franjas2[i][1];break;}
+    prev2=franjas2[i][0];
+  }
+
+  var det='';
+  det+='<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gry-lt);padding:4px 0"><span>IVA ventas (22%)</span><strong>'+fmtUYU(ivaVentas)+'</strong></div>';
+  det+='<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gry-lt);padding:4px 0"><span>IVA compras (credito)</span><strong style="color:var(--sage-dkr)">- '+fmtUYU(ivaCompras)+'</strong></div>';
+  det+='<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gry-lt);padding:4px 0"><span><strong>IVA neto a pagar</strong></span><strong style="color:var(--rojo)">'+fmtUYU(ivaNeto)+'</strong></div>';
+  det+='<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gry-lt);padding:4px 0"><span>Renta anual estimada</span><strong>'+fmtUYU(rentaAnualUYU)+'</strong></div>';
+  det+='<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gry-lt);padding:4px 0"><span>IRPF anual estimado (tasa marginal '+Math.round(tasaMarginal*100)+'%)</span><strong>'+fmtUYU(irpfAnual)+'</strong></div>';
+  det+='<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gry-lt);padding:4px 0"><span><strong>Anticipo IRPF mensual (1/12)</strong></span><strong style="color:var(--rojo)">'+fmtUYU(irpfMensual)+'</strong></div>';
+  det+='<div style="display:flex;justify-content:space-between;padding:4px 0"><span><strong>BPS mensual (~18% ingresos netos)</strong></span><strong style="color:var(--rojo)">'+fmtUYU(bpsMensual)+'</strong></div>';
+  document.getElementById('uni-detalle').innerHTML=det;
   document.getElementById('uni-result').style.display='block';
 }
 
