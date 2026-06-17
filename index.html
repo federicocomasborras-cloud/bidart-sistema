@@ -187,6 +187,7 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
     <button class="nb" onclick="go('clientes',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Clientes</button>
     <button class="nb" onclick="go('impuestos',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Impuestos</button>
     <button class="nb" onclick="go('resultados',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Resultados</button>
+    <button class="nb" onclick="go('proveedores',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Proveedores</button>
   </nav>
   <div class="sb-ft"><div class="u-av" id="uav">G</div><div><div class="u-nm" id="unm">-</div><div class="u-rl">Sistema Bidart</div></div></div>
 </div>
@@ -347,11 +348,12 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
         </div>
 
         <div id="gform-solo">
-          <div style="display:grid;grid-template-columns:1fr 1fr 2fr 1fr 1fr 1fr auto;gap:10px;align-items:end">
+          <div style="display:grid;grid-template-columns:1fr 1fr 2fr 1fr 1fr 1fr 1fr auto;gap:10px;align-items:end">
             <div class="fg"><label class="fl">Fecha</label><input type="date" id="gf"></div>
             <div class="fg"><label class="fl">Obra</label><select id="go2"></select></div>
             <div class="fg"><label class="fl">Descripcion</label><input type="text" id="gd" placeholder="Materiales..."></div>
-            <div class="fg"><label class="fl">Categoria</label><select id="gc"><option>Materiales</option><option>Vicry - Materiales</option><option>Mano de obra</option><option>Flete</option><option>Herrajes</option><option>Roturas</option><option>Otros</option></select></div>
+            <div class="fg"><label class="fl">Proveedor</label><input type="text" id="gprov" list="prov-list" placeholder="Opcional"><datalist id="prov-list"></datalist></div>
+            <div class="fg"><label class="fl">Categoria</label><select id="gc"><option>Materiales</option><option>Mano de obra</option><option>Flete</option><option>Herrajes</option><option>Roturas</option><option>Otros</option></select></div>
             <div class="fg"><label class="fl">Moneda</label><select id="gm"><option>UYU</option><option>USD</option></select></div>
             <div class="fg"><label class="fl">Monto</label><input type="number" id="gmo" placeholder="0.00"></div>
             <div class="fg"><label class="fl"> </label><button class="btn btn-p" style="height:41px" onclick="guardarGasto()">Guardar</button></div>
@@ -610,6 +612,28 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
 
     </div>
 
+    <div class="sc" id="sc-proveedores">
+      <div class="qc">
+        <div style="font-family:var(--serif);font-size:16px;margin-bottom:14px">Nuevo proveedor</div>
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr auto;gap:10px;align-items:end">
+          <div class="fg"><label class="fl">Nombre</label><input type="text" id="pvnom" placeholder="Nombre del proveedor"></div>
+          <div class="fg"><label class="fl">Contacto</label><input type="text" id="pvcontacto" placeholder="Nombre contacto"></div>
+          <div class="fg"><label class="fl">Telefono</label><input type="text" id="pvtel" placeholder="099..."></div>
+          <div class="fg"><label class="fl">Email</label><input type="text" id="pvmail" placeholder="correo@..."></div>
+          <div class="fg"><label class="fl">Condiciones</label><input type="text" id="pvcond" placeholder="Ej: 10% admin, 30 dias"></div>
+          <div class="fg"><label class="fl"> </label><button class="btn btn-p" style="height:41px" onclick="guardarProv()">Guardar</button></div>
+        </div>
+        <div style="font-size:11px;color:var(--gry);margin-top:8px">Los gastos asociados a un proveedor se filtran automaticamente en Resultados.</div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div style="font-family:var(--serif);font-size:16px">Proveedores registrados</div>
+          <input type="text" id="pvsrch" placeholder="Buscar..." style="width:180px" oninput="filtPROV()">
+        </div>
+        <div id="pvtab"><div class="spin-w"><div class="spin"></div>Cargando...</div></div>
+      </div>
+    </div>
+
   </div>
 </div>
 </div>
@@ -633,7 +657,7 @@ var SID='1-Hs41vg9Zpki-qkR93CUu3Hd4ht0err7vAulguDxnag';
 var CID='760052991879-6g9jgtjd1mfpfc5t02vct9unp8sq1pul.apps.googleusercontent.com';
 var SC='https://www.googleapis.com/auth/spreadsheets';
 var TOK=null,TC=43,PE=3500;
-var PR=[],OB=[],VN=[],GS=[],CO=[],CL=[];
+var PR=[],OB=[],VN=[],GS=[],CO=[],CL=[],PROV=[];
 var IT=[],IID=0,tcl=null;
 
 window.onload=function(){
@@ -691,7 +715,7 @@ function n(s){return parseFloat((s||'').toString().replace(/[^0-9.-]/g,''))||0;}
 async function syncAll(){
   toast('Sincronizando...');
   try{
-    await Promise.all([loadPR(),loadVN(),loadGS(),loadOB(),loadCO(),loadCL()]);
+    await Promise.all([loadPR(),loadVN(),loadGS(),loadOB(),loadCO(),loadCL(),loadPROV()]);
     updDash();
     toast('Datos actualizados OK');
   }catch(e){toast('Error: '+e.message);console.error(e);}
@@ -745,7 +769,7 @@ async function loadVN(){
 async function loadGS(){
   var rows=await apiGet('💰 Gastos!A8:I500');
   GS=rows.filter(function(r){return r[1];}).map(function(r){
-    return {fecha:r[1]||'',desc:r[2]||'',obra:r[3]||'',cat:r[6]||'',mon:r[7]||'UYU',monto:n(r[8])};
+    return {fecha:r[1]||'',desc:r[2]||'',obra:r[3]||'',cat:r[6]||'',mon:r[7]||'UYU',monto:n(r[8]),prov:r[9]||''};
   });
   rendGS();
 }
@@ -1294,10 +1318,10 @@ function rendVN(){
 function rendGS(){
   var h='';
   if(GS.length){
-    h='<table><tr><th>Fecha</th><th>Obra</th><th>Descripcion</th><th>Categoria</th><th>Mon</th><th style="text-align:right">Monto</th></tr>';
+    h='<table><tr><th>Fecha</th><th>Obra</th><th>Descripcion</th><th>Proveedor</th><th>Categoria</th><th>Mon</th><th style="text-align:right">Monto</th></tr>';
     var d=GS.slice().reverse();
     for(var i=0;i<d.length;i++){var g=d[i];
-      h+='<tr><td>'+g.fecha+'</td><td style="font-size:11px;color:var(--gry)">'+g.obra+'</td><td>'+g.desc+'</td><td><span class="bdg be">'+g.cat+'</span></td><td style="font-size:11px">'+g.mon+'</td><td style="text-align:right;font-family:var(--serif)">$'+g.monto.toLocaleString()+'</td></tr>';
+      h+='<tr><td>'+g.fecha+'</td><td style="font-size:11px;color:var(--gry)">'+g.obra+'</td><td>'+g.desc+'</td><td style="font-size:12px">'+(g.prov&&g.prov!=='-'?'<span class="bdg bg2">'+g.prov+'</span>':'-')+'</td><td><span class="bdg be">'+g.cat+'</span></td><td style="font-size:11px">'+g.mon+'</td><td style="text-align:right;font-family:var(--serif)">$'+g.monto.toLocaleString()+'</td></tr>';
     }
     h+='</table>';
   }else{h='<div style="text-align:center;padding:28px;color:var(--gry)">Sin gastos</div>';}
@@ -1384,9 +1408,11 @@ async function guardarGasto(){
   if(!f||!d||!mo){toast('Completa fecha, descripcion y monto');return;}
   var fmt=f.split('-').reverse().join('/');
   try{
-    await apiAdd('💰 Gastos',[GS.length+1,fmt,d,ob||'-','-','-',c,m,mo]);
+    var prov=document.getElementById('gprov').value||'-';
+    await apiAdd('💰 Gastos',[GS.length+1,fmt,d,ob||'-','-','-',c,m,mo,prov]);
     document.getElementById('gmo').value='';
     document.getElementById('gd').value='';
+    document.getElementById('gprov').value='';
     await loadGS();updDash();
     toast('Gasto guardado OK');
   }catch(e){toast('Error: '+e.message);}
@@ -1982,9 +2008,9 @@ function rendResultados(){
     var d=parseFechaGS(g.fecha);
     if(!d||d.anio!==anio) return;
     var monto=g.mon==='USD'?g.monto:g.monto/TC;
-    if(g.cat==='Vicry - Materiales'){
+    if(g.prov&&g.prov.toLowerCase().indexOf('vicry')!==-1){
       vicryMes[d.mes]+=monto;
-      vicryDetalle.push({fecha:g.fecha,obra:g.obra,desc:g.desc,monto:monto,mes:d.mes});
+      vicryDetalle.push({fecha:g.fecha,obra:g.obra,desc:g.desc,monto:monto,mes:d.mes,prov:g.prov});
     } else if(g.cat==='Roturas'){
       roturaMes[d.mes]+=monto;
     } else {
@@ -2137,6 +2163,110 @@ function rendResultados(){
   }
 }
 
+async function loadPROV(){
+  try{
+    var rows=await apiGet('🛒 Proveedores!A2:F1000');
+    PROV=rows.filter(function(r){return r[0];}).map(function(r){
+      return {rowIdx:0,nom:r[0]||'',contacto:r[1]||'',tel:r[2]||'',mail:r[3]||'',cond:r[4]||'',fecha:r[5]||''};
+    });
+    for(var i=0;i<PROV.length;i++) PROV[i].rowIdx=i+2;
+  }catch(e){ PROV=[]; }
+  rendPROV();
+  updProvList();
+}
+
+function updProvList(){
+  var dl=document.getElementById('prov-list');
+  if(!dl) return;
+  dl.innerHTML='';
+  PROV.forEach(function(p){
+    var op=document.createElement('option');op.value=p.nom;dl.appendChild(op);
+  });
+}
+
+function filtPROV(){
+  var bus=(document.getElementById('pvsrch').value||'').toLowerCase();
+  rendPROVfiltered(bus);
+}
+
+function rendPROV(){rendPROVfiltered('');}
+
+function rendPROVfiltered(bus){
+  var d=PROV.filter(function(p){return !bus||p.nom.toLowerCase().indexOf(bus)!==-1;});
+  var tab=document.getElementById('pvtab');
+  if(!d.length){tab.innerHTML='<div style="text-align:center;padding:28px;color:var(--gry)">Sin proveedores registrados</div>';return;}
+  var tbl=document.createElement('table');
+  var hdr=tbl.insertRow();
+  ['Nombre','Contacto','Telefono','Email','Condiciones','Alta',''].forEach(function(h){
+    var th=document.createElement('th');th.textContent=h;hdr.appendChild(th);
+  });
+  d.forEach(function(p){
+    var tr=tbl.insertRow();
+    [{t:p.nom,s:'font-weight:500'},{t:p.contacto||'-',s:''},{t:p.tel||'-',s:''},{t:p.mail||'-',s:'font-size:12px'},{t:p.cond||'-',s:'font-size:12px;color:var(--gry)'},{t:p.fecha||'-',s:'font-size:11px;color:var(--gry)'}].forEach(function(c){
+      var td=tr.insertCell();td.style.cssText=c.s;td.textContent=c.t;
+    });
+    var tdAct=tr.insertCell();
+    var delBtn=document.createElement('button');
+    delBtn.className='btn';delBtn.textContent='Eliminar';
+    delBtn.style.cssText='padding:4px 10px;font-size:11px;color:var(--rojo)';
+    delBtn.onclick=(function(pv){return function(){eliminarProv(pv);};})(p);
+    tdAct.appendChild(delBtn);
+  });
+  tab.innerHTML='';tab.appendChild(tbl);
+}
+
+async function ensureProvSheet(){
+  var meta=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SID,{headers:{Authorization:'Bearer '+TOK}});
+  var mj=await meta.json();
+  var exists=false;
+  for(var i=0;i<mj.sheets.length;i++){if(mj.sheets[i].properties.title==='🛒 Proveedores'){exists=true;break;}}
+  if(exists) return;
+  var batchUrl='https://sheets.googleapis.com/v4/spreadsheets/'+SID+':batchUpdate';
+  await fetch(batchUrl,{method:'POST',headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
+    body:JSON.stringify({requests:[{addSheet:{properties:{title:'🛒 Proveedores'}}}]})});
+  await apiAdd('🛒 Proveedores',['Nombre','Contacto','Telefono','Email','Condiciones','Fecha alta']);
+}
+
+async function guardarProv(){
+  var nom=document.getElementById('pvnom').value.trim();
+  var contacto=document.getElementById('pvcontacto').value;
+  var tel=document.getElementById('pvtel').value;
+  var mail=document.getElementById('pvmail').value;
+  var cond=document.getElementById('pvcond').value;
+  if(!nom){toast('Completa el nombre del proveedor');return;}
+  var existe=PROV.some(function(p){return p.nom.toLowerCase()===nom.toLowerCase();});
+  if(existe){toast('Ese proveedor ya existe');return;}
+  try{
+    await ensureProvSheet();
+    var hoy=new Date().toLocaleDateString('es-UY');
+    await apiAdd('🛒 Proveedores',[nom,contacto,tel,mail,cond,hoy]);
+    document.getElementById('pvnom').value='';
+    document.getElementById('pvcontacto').value='';
+    document.getElementById('pvtel').value='';
+    document.getElementById('pvmail').value='';
+    document.getElementById('pvcond').value='';
+    await loadPROV();
+    toast('Proveedor guardado OK');
+  }catch(e){toast('Error: '+e.message);}
+}
+
+async function eliminarProv(pv){
+  if(!confirm('Eliminar proveedor "'+pv.nom+'"?')) return;
+  try{
+    var meta=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SID,{headers:{Authorization:'Bearer '+TOK}});
+    var mj=await meta.json();
+    var sheetId=null;
+    for(var i=0;i<mj.sheets.length;i++){if(mj.sheets[i].properties.title==='🛒 Proveedores'){sheetId=mj.sheets[i].properties.sheetId;break;}}
+    if(sheetId===null){toast('Hoja no encontrada');return;}
+    var r=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SID+':batchUpdate',{
+      method:'POST',headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
+      body:JSON.stringify({requests:[{deleteDimension:{range:{sheetId:sheetId,dimension:'ROWS',startIndex:pv.rowIdx-1,endIndex:pv.rowIdx}}}]})});
+    if(!r.ok){var t=await r.text();throw new Error('HTTP '+r.status+': '+t.substring(0,100));}
+    await loadPROV();
+    toast('Proveedor eliminado');
+  }catch(e){toast('Error: '+e.message);}
+}
+
 function saveCfg(){
   TC=parseFloat(document.getElementById('tc').value)||43;
   PE=parseFloat(document.getElementById('pesp').value)||3500;
@@ -2150,7 +2280,7 @@ function go(id,btn){
   var nbs=document.querySelectorAll('.nb');
   for(var i=0;i<nbs.length;i++)nbs[i].classList.remove('on');
   document.getElementById('sc-'+id).classList.add('on');
-  var tt={dash:'Dashboard',cot:'Nueva cotizacion',pres:'Presupuestos',obras:'Obras',ventas:'Ventas',gastos:'Gastos',costos:'Costos',clientes:'Clientes',impuestos:'Impuestos',resultados:'Estado de resultados'};
+  var tt={dash:'Dashboard',cot:'Nueva cotizacion',pres:'Presupuestos',obras:'Obras',ventas:'Ventas',gastos:'Gastos',costos:'Costos',clientes:'Clientes',impuestos:'Impuestos',resultados:'Estado de resultados',proveedores:'Proveedores'};
   document.getElementById('pt').textContent=tt[id]||id;
   if(btn)btn.classList.add('on');
 }
