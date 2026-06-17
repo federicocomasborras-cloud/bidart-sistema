@@ -186,6 +186,7 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
     <button class="nb" onclick="go('costos',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>Costos</button>
     <button class="nb" onclick="go('clientes',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Clientes</button>
     <button class="nb" onclick="go('impuestos',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Impuestos</button>
+    <button class="nb" onclick="go('resultados',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Resultados</button>
   </nav>
   <div class="sb-ft"><div class="u-av" id="uav">G</div><div><div class="u-nm" id="unm">-</div><div class="u-rl">Sistema Bidart</div></div></div>
 </div>
@@ -350,7 +351,7 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
             <div class="fg"><label class="fl">Fecha</label><input type="date" id="gf"></div>
             <div class="fg"><label class="fl">Obra</label><select id="go2"></select></div>
             <div class="fg"><label class="fl">Descripcion</label><input type="text" id="gd" placeholder="Materiales..."></div>
-            <div class="fg"><label class="fl">Categoria</label><select id="gc"><option>Materiales</option><option>Mano de obra</option><option>Flete</option><option>Herrajes</option><option>Otros</option></select></div>
+            <div class="fg"><label class="fl">Categoria</label><select id="gc"><option>Materiales</option><option>Vicry - Materiales</option><option>Mano de obra</option><option>Flete</option><option>Herrajes</option><option>Roturas</option><option>Otros</option></select></div>
             <div class="fg"><label class="fl">Moneda</label><select id="gm"><option>UYU</option><option>USD</option></select></div>
             <div class="fg"><label class="fl">Monto</label><input type="number" id="gmo" placeholder="0.00"></div>
             <div class="fg"><label class="fl"> </label><button class="btn btn-p" style="height:41px" onclick="guardarGasto()">Guardar</button></div>
@@ -576,7 +577,38 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
           </div>
         </div>
       </div>
-    </div>    </div>
+    </div>
+    <div class="sc" id="sc-resultados">
+      <div style="display:flex;gap:10px;margin-bottom:18px;align-items:center;flex-wrap:wrap">
+        <div style="font-family:var(--serif);font-size:20px;flex:1">Estado de resultados</div>
+        <div class="fg" style="min-width:120px"><label class="fl">Ano</label>
+          <select id="res-anio" onchange="rendResultados()">
+            <option>2025</option><option selected>2026</option><option>2027</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Resumen anual -->
+      <div class="kgrid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px" id="res-kpis">
+        <div class="kpi"><div class="klbl">Ingresos totales</div><div class="kval" id="res-ing">-</div><div class="ksub">USD cobrado</div></div>
+        <div class="kpi r"><div class="klbl">Costos y gastos totales</div><div class="kval" id="res-cos">-</div><div class="ksub">USD</div></div>
+        <div class="kpi"><div class="klbl">Resultado neto</div><div class="kval" id="res-net">-</div><div class="ksub">Ingresos - Gastos</div></div>
+      </div>
+
+      <!-- Tabla mensual -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="ct">Detalle mensual <span id="res-anio-label">2026</span></div>
+        <div style="overflow-x:auto"><div id="res-tabla"><div class="spin-w"><div class="spin"></div>Cargando...</div></div></div>
+      </div>
+
+      <!-- Detalle de costos Vicry -->
+      <div class="card">
+        <div class="ct">Costos Vicry <span>materiales + 10% administracion</span></div>
+        <div style="overflow-x:auto"><div id="res-vicry"><div class="spin-w"><div class="spin"></div>Cargando...</div></div></div>
+      </div>
+    </div>
+
+    </div>
 
   </div>
 </div>
@@ -1917,6 +1949,141 @@ function calcUni(){
   document.getElementById('uni-result').style.display='block';
 }
 
+function parseFechaGS(f){
+  var p=f.split('/');
+  if(p.length!==3) return null;
+  return {anio:parseInt(p[2]),mes:parseInt(p[1])-1};
+}
+
+function rendResultados(){
+  var anio=parseInt(document.getElementById('res-anio').value)||2026;
+  document.getElementById('res-anio-label').textContent=anio;
+  TC=parseFloat(document.getElementById('tc').value)||43;
+
+  var MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Setiembre','Octubre','Noviembre','Diciembre'];
+
+  // Ingresos cobrados por mes
+  var ingMes=Array(12).fill(0);
+  VN.filter(function(v){return v.est==='Cobrado';}).forEach(function(v){
+    var d=parseFechaGS(v.fecha);
+    if(!d||d.anio!==anio) return;
+    ingMes[d.mes]+= v.mon==='USD'?v.monto:v.monto/TC;
+  });
+
+  // Gastos por mes y categoria
+  var vicryMes=Array(12).fill(0);
+  var roturaMes=Array(12).fill(0);
+  var otrosMes=Array(12).fill(0);
+  var vicryDetalle=[];
+
+  GS.forEach(function(g){
+    var d=parseFechaGS(g.fecha);
+    if(!d||d.anio!==anio) return;
+    var monto=g.mon==='USD'?g.monto:g.monto/TC;
+    if(g.cat==='Vicry - Materiales'){
+      vicryMes[d.mes]+=monto;
+      vicryDetalle.push({fecha:g.fecha,obra:g.obra,desc:g.desc,monto:monto,mes:d.mes});
+    } else if(g.cat==='Roturas'){
+      roturaMes[d.mes]+=monto;
+    } else {
+      otrosMes[d.mes]+=monto;
+    }
+  });
+
+  // Admin Vicry = 10% sobre materiales Vicry
+  var adminVicryMes=vicryMes.map(function(v){return v*0.10;});
+
+  // Build annual totals
+  var totIng=ingMes.reduce(function(s,v){return s+v;},0);
+  var totVicry=vicryMes.reduce(function(s,v){return s+v;},0);
+  var totAdmin=adminVicryMes.reduce(function(s,v){return s+v;},0);
+  var totRotura=roturaMes.reduce(function(s,v){return s+v;},0);
+  var totOtros=otrosMes.reduce(function(s,v){return s+v;},0);
+  var totCos=totVicry+totAdmin+totRotura+totOtros;
+  var totNet=totIng-totCos;
+
+  // KPIs
+  document.getElementById('res-ing').textContent='$'+Math.round(totIng).toLocaleString();
+  document.getElementById('res-cos').textContent='$'+Math.round(totCos).toLocaleString();
+  var netEl=document.getElementById('res-net');
+  netEl.textContent='$'+Math.round(totNet).toLocaleString();
+  netEl.style.color=totNet>=0?'var(--sage-dkr)':'var(--rojo)';
+
+  // Monthly table
+  var t='<table><tr>'
+    +'<th>Mes</th>'
+    +'<th style="text-align:right">Ingresos</th>'
+    +'<th style="text-align:right">Mat. Vicry</th>'
+    +'<th style="text-align:right">Admin Vicry (10%)</th>'
+    +'<th style="text-align:right">Roturas</th>'
+    +'<th style="text-align:right">Otros gastos</th>'
+    +'<th style="text-align:right">Total costos</th>'
+    +'<th style="text-align:right">Resultado</th>'
+    +'</tr>';
+
+  var S=function(n){return n>0?'$'+Math.round(n).toLocaleString():'-';};
+
+  for(var m=0;m<12;m++){
+    var cosMes=vicryMes[m]+adminVicryMes[m]+roturaMes[m]+otrosMes[m];
+    var netMes=ingMes[m]-cosMes;
+    var hasData=ingMes[m]>0||cosMes>0;
+    var nc=netMes>=0?'var(--sage-dkr)':'var(--rojo)';
+    var rowStyle=hasData?'':'opacity:.4';
+    t+='<tr style="'+rowStyle+'">'
+      +'<td style="font-weight:500">'+MESES[m]+'</td>'
+      +'<td style="text-align:right;font-family:var(--serif);color:var(--sage-dkr)">'+S(ingMes[m])+'</td>'
+      +'<td style="text-align:right;font-family:var(--serif)">'+S(vicryMes[m])+'</td>'
+      +'<td style="text-align:right;font-family:var(--serif);color:var(--ambar)">'+S(adminVicryMes[m])+'</td>'
+      +'<td style="text-align:right;font-family:var(--serif);color:var(--rojo)">'+S(roturaMes[m])+'</td>'
+      +'<td style="text-align:right;font-family:var(--serif)">'+S(otrosMes[m])+'</td>'
+      +'<td style="text-align:right;font-family:var(--serif)">'+S(cosMes)+'</td>'
+      +'<td style="text-align:right;font-family:var(--serif);font-weight:500;color:'+nc+'">'+S(netMes)+'</td>'
+      +'</tr>';
+  }
+
+  // Totals row
+  var ncTot=totNet>=0?'var(--sage-dkr)':'var(--rojo)';
+  t+='<tr style="border-top:2px solid var(--blk)">'
+    +'<td style="font-weight:500">TOTAL</td>'
+    +'<td style="text-align:right;font-family:var(--serif);color:var(--sage-dkr);font-weight:500">$'+Math.round(totIng).toLocaleString()+'</td>'
+    +'<td style="text-align:right;font-family:var(--serif);font-weight:500">$'+Math.round(totVicry).toLocaleString()+'</td>'
+    +'<td style="text-align:right;font-family:var(--serif);color:var(--ambar);font-weight:500">$'+Math.round(totAdmin).toLocaleString()+'</td>'
+    +'<td style="text-align:right;font-family:var(--serif);color:var(--rojo);font-weight:500">$'+Math.round(totRotura).toLocaleString()+'</td>'
+    +'<td style="text-align:right;font-family:var(--serif);font-weight:500">$'+Math.round(totOtros).toLocaleString()+'</td>'
+    +'<td style="text-align:right;font-family:var(--serif);font-weight:500">$'+Math.round(totCos).toLocaleString()+'</td>'
+    +'<td style="text-align:right;font-family:var(--serif);font-size:16px;font-weight:500;color:'+ncTot+'">$'+Math.round(totNet).toLocaleString()+'</td>'
+    +'</tr></table>';
+
+  document.getElementById('res-tabla').innerHTML=t;
+
+  // Vicry detail table
+  if(!vicryDetalle.length){
+    document.getElementById('res-vicry').innerHTML='<div style="text-align:center;padding:28px;color:var(--gry)">Sin gastos de Vicry en '+anio+'. Registra gastos con categoria "Vicry - Materiales" para verlos aqui.</div>';
+  } else {
+    var vt='<table><tr><th>Fecha</th><th>Obra</th><th>Descripcion</th><th style="text-align:right">Materiales USD</th><th style="text-align:right">Admin 10%</th><th style="text-align:right">Total</th></tr>';
+    var vtotMat=0,vtotAdm=0;
+    vicryDetalle.sort(function(a,b){return a.mes-b.mes;}).forEach(function(g){
+      var adm=Math.round(g.monto*0.10*100)/100;
+      vtotMat+=g.monto;vtotAdm+=adm;
+      vt+='<tr>'
+        +'<td>'+g.fecha+'</td>'
+        +'<td style="font-size:11px;color:var(--gry)">'+g.obra+'</td>'
+        +'<td>'+g.desc+'</td>'
+        +'<td style="text-align:right;font-family:var(--serif)">$'+Math.round(g.monto).toLocaleString()+'</td>'
+        +'<td style="text-align:right;font-family:var(--serif);color:var(--ambar)">$'+adm.toLocaleString()+'</td>'
+        +'<td style="text-align:right;font-family:var(--serif);font-weight:500">$'+Math.round(g.monto+adm).toLocaleString()+'</td>'
+        +'</tr>';
+    });
+    vt+='<tr style="border-top:2px solid var(--blk)">'
+      +'<td colspan="3" style="font-weight:500">TOTAL</td>'
+      +'<td style="text-align:right;font-family:var(--serif);font-weight:500">$'+Math.round(vtotMat).toLocaleString()+'</td>'
+      +'<td style="text-align:right;font-family:var(--serif);color:var(--ambar);font-weight:500">$'+Math.round(vtotAdm).toLocaleString()+'</td>'
+      +'<td style="text-align:right;font-family:var(--serif);font-weight:500">$'+Math.round(vtotMat+vtotAdm).toLocaleString()+'</td>'
+      +'</tr></table>';
+    document.getElementById('res-vicry').innerHTML=vt;
+  }
+}
+
 function saveCfg(){
   TC=parseFloat(document.getElementById('tc').value)||43;
   PE=parseFloat(document.getElementById('pesp').value)||3500;
@@ -1924,12 +2091,13 @@ function saveCfg(){
 }
 
 function go(id,btn){
+  if(id==='resultados') setTimeout(function(){rendResultados();},50);
   var scs=document.querySelectorAll('.sc');
   for(var i=0;i<scs.length;i++)scs[i].classList.remove('on');
   var nbs=document.querySelectorAll('.nb');
   for(var i=0;i<nbs.length;i++)nbs[i].classList.remove('on');
   document.getElementById('sc-'+id).classList.add('on');
-  var tt={dash:'Dashboard',cot:'Nueva cotizacion',pres:'Presupuestos',obras:'Obras',ventas:'Ventas',gastos:'Gastos',costos:'Costos',clientes:'Clientes',impuestos:'Impuestos'};
+  var tt={dash:'Dashboard',cot:'Nueva cotizacion',pres:'Presupuestos',obras:'Obras',ventas:'Ventas',gastos:'Gastos',costos:'Costos',clientes:'Clientes',impuestos:'Impuestos',resultados:'Estado de resultados'};
   document.getElementById('pt').textContent=tt[id]||id;
   if(btn)btn.classList.add('on');
 }
