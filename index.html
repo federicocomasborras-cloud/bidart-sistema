@@ -752,25 +752,32 @@ async function loadPR(){
 async function loadVN(){
   var rows=await apiGet('💵 Ventas!A8:L500');
   var HEADERS=['Fecha cobro','N Obra','N\u00b0 Obra','Nombre obra / cliente','Moneda','Estado cobro'];
-  VN=rows.filter(function(r){
-    if(!r[1]) return false;
-    // Filtra filas que sean en realidad el encabezado duplicado
-    for(var k=0;k<HEADERS.length;k++){
-      if(r[1]===HEADERS[k]||r[2]===HEADERS[k]||r[3]===HEADERS[k]) return false;
-    }
-    return true;
-  }).map(function(r){
-    return {fecha:r[1]||'',obra:r[2]||'',cli:r[3]||'',tipo:r[5]||'',
-            est:r[7]||'Cobrado',mon:r[8]||'USD',monto:n(r[9])};
-  });
+  VN=[];
+  for(var i=0;i<rows.length;i++){
+    var r=rows[i];
+    if(!r[1]) continue;
+    var skip=false;
+    for(var k=0;k<HEADERS.length;k++){if(r[1]===HEADERS[k]||r[2]===HEADERS[k]||r[3]===HEADERS[k]){skip=true;break;}}
+    if(skip) continue;
+    VN.push({rowIdx:i+8,fecha:r[1]||'',obra:r[2]||'',cli:r[3]||'',tipo:r[5]||'',
+             est:r[7]||'Cobrado',mon:r[8]||'USD',monto:n(r[9])});
+  }
   rendVN();updDrops();
 }
 
 async function loadGS(){
-  var rows=await apiGet('💰 Gastos!A8:I500');
-  GS=rows.filter(function(r){return r[1];}).map(function(r){
-    return {fecha:r[1]||'',desc:r[2]||'',obra:r[3]||'',cat:r[6]||'',mon:r[7]||'UYU',monto:n(r[8]),prov:r[9]||''};
-  });
+  var rows=await apiGet('💰 Gastos!A8:J500');
+  var GS_HDRS=['Fecha','Descripcion','Descripcion gasto','Fecha cobro','N Obra'];
+  GS=[];
+  for(var i=0;i<rows.length;i++){
+    var r=rows[i];
+    if(!r[1]) continue;
+    var skip=false;
+    for(var k=0;k<GS_HDRS.length;k++){if(r[1]===GS_HDRS[k]||r[2]===GS_HDRS[k]){skip=true;break;}}
+    if(skip) continue;
+    var fstr=r[1].toString();if(isNaN(parseInt(fstr[0]))) continue;
+    GS.push({rowIdx:i+8,fecha:r[1]||'',desc:r[2]||'',obra:r[3]||'',cat:r[6]||'',mon:r[7]||'UYU',monto:n(r[8]),prov:r[9]||''});
+  }
   rendGS();
 }
 
@@ -1305,10 +1312,10 @@ function rendVN(){
 
   var h='';
   if(d.length){
-    h='<table><tr><th>Fecha</th><th>Obra</th><th>Cliente</th><th>Mon</th><th style="text-align:right">Monto</th><th style="text-align:right">Equiv USD</th><th>Estado</th></tr>';
+    h='<table><tr><th>Fecha</th><th>Obra</th><th>Cliente</th><th>Mon</th><th style="text-align:right">Monto</th><th style="text-align:right">Equiv USD</th><th>Estado</th><th></th></tr>';
     for(var i=0;i<d.length;i++){var v=d[i];
       var eq=v.mon==='USD'?v.monto:Math.round(v.monto/TC);
-      h+='<tr><td>'+v.fecha+'</td><td style="font-size:11px;color:var(--gry)">'+v.obra+'</td><td>'+v.cli+'</td><td><span class="bdg '+(v.mon==='USD'?'bg2':'be')+'">'+v.mon+'</span></td><td style="text-align:right;font-family:var(--serif)">$'+v.monto.toLocaleString()+'</td><td style="text-align:right;font-family:var(--serif);color:var(--sage-dkr)">$'+eq.toLocaleString()+'</td><td>'+bdg(v.est)+'</td></tr>';
+      h+='<tr><td>'+v.fecha+'</td><td style="font-size:11px;color:var(--gry)">'+v.obra+'</td><td>'+v.cli+'</td><td><span class="bdg '+(v.mon==='USD'?'bg2':'be')+'">'+v.mon+'</span></td><td style="text-align:right;font-family:var(--serif)">$'+v.monto.toLocaleString()+'</td><td style="text-align:right;font-family:var(--serif);color:var(--sage-dkr)">$'+eq.toLocaleString()+'</td><td>'+bdg(v.est)+'</td><td><button class="btn" onclick="eliminarVenta('+v.rowIdx+')" style="padding:3px 8px;font-size:11px;color:var(--rojo)">x</button></td></tr>';
     }
     h+='</table>';
   }else{h='<div style="text-align:center;padding:28px;color:var(--gry)">Sin ventas en este rango</div>';}
@@ -1318,10 +1325,10 @@ function rendVN(){
 function rendGS(){
   var h='';
   if(GS.length){
-    h='<table><tr><th>Fecha</th><th>Obra</th><th>Descripcion</th><th>Proveedor</th><th>Categoria</th><th>Mon</th><th style="text-align:right">Monto</th></tr>';
+    h='<table><tr><th>Fecha</th><th>Obra</th><th>Descripcion</th><th>Proveedor</th><th>Categoria</th><th>Mon</th><th style="text-align:right">Monto</th><th></th></tr>';
     var d=GS.slice().reverse();
     for(var i=0;i<d.length;i++){var g=d[i];
-      h+='<tr><td>'+g.fecha+'</td><td style="font-size:11px;color:var(--gry)">'+g.obra+'</td><td>'+g.desc+'</td><td style="font-size:12px">'+(g.prov&&g.prov!=='-'?'<span class="bdg bg2">'+g.prov+'</span>':'-')+'</td><td><span class="bdg be">'+g.cat+'</span></td><td style="font-size:11px">'+g.mon+'</td><td style="text-align:right;font-family:var(--serif)">$'+g.monto.toLocaleString()+'</td></tr>';
+      h+='<tr><td>'+g.fecha+'</td><td style="font-size:11px;color:var(--gry)">'+g.obra+'</td><td>'+g.desc+'</td><td style="font-size:12px">'+(g.prov&&g.prov!=='-'?'<span class="bdg bg2">'+g.prov+'</span>':'-')+'</td><td><span class="bdg be">'+g.cat+'</span></td><td style="font-size:11px">'+g.mon+'</td><td style="text-align:right;font-family:var(--serif)">$'+g.monto.toLocaleString()+'</td><td><button class="btn" onclick="eliminarGasto('+g.rowIdx+')" style="padding:3px 8px;font-size:11px;color:var(--rojo)">x</button></td></tr>';
     }
     h+='</table>';
   }else{h='<div style="text-align:center;padding:28px;color:var(--gry)">Sin gastos</div>';}
@@ -1409,7 +1416,12 @@ async function guardarGasto(){
   var fmt=f.split('-').reverse().join('/');
   try{
     var prov=document.getElementById('gprov').value||'-';
-    await apiAdd('💰 Gastos',[GS.length+1,fmt,d,ob||'-','-','-',c,m,mo,prov]);
+    var gUrl='https://sheets.googleapis.com/v4/spreadsheets/'+SID+'/values/'
+      +encodeURIComponent('💰 Gastos!A7:J7')+':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS';
+    var gR=await fetch(gUrl,{method:'POST',
+      headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
+      body:JSON.stringify({values:[[GS.length+1,fmt,d,ob||'-','-','-',c,m,mo,prov]]})});
+    if(!gR.ok){var gt=await gR.text();throw new Error('HTTP '+gR.status+': '+gt.substring(0,100));}
     document.getElementById('gmo').value='';
     document.getElementById('gd').value='';
     document.getElementById('gprov').value='';
@@ -1486,7 +1498,10 @@ async function guardarGastoComp(){
       var pct=parseFloat(document.getElementById(id+'-pct').value)||0;
       var monto=Math.round(total*pct/100*100)/100;
       if(!monto) continue;
-      await apiAdd('💰 Gastos',[GS.length+1,fmt,d+' ('+pct+'%)',ob,'-','-',c,m,monto]);
+      var gcUrl='https://sheets.googleapis.com/v4/spreadsheets/'+SID+'/values/'
+        +encodeURIComponent('💰 Gastos!A7:J7')+':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS';
+      await fetch(gcUrl,{method:'POST',headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
+        body:JSON.stringify({values:[[GS.length+1,fmt,d+' ('+pct+'%)',ob,'-','-',c,m,monto,'-']]})});
     }
     document.getElementById('gcmo').value='';
     document.getElementById('gcd').value='';
@@ -1505,7 +1520,10 @@ async function guardarGastoGen(){
   if(!f||!d||!mo){toast('Completa todos los campos');return;}
   var fmt=f.split('-').reverse().join('/');
   try{
-    await apiAdd('💰 Gastos',[GS.length+1,fmt,d,'GENERAL','-','-',c,m,mo]);
+    var ggUrl='https://sheets.googleapis.com/v4/spreadsheets/'+SID+'/values/'
+      +encodeURIComponent('💰 Gastos!A7:J7')+':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS';
+    await fetch(ggUrl,{method:'POST',headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
+      body:JSON.stringify({values:[[GS.length+1,fmt,d,'GENERAL','-','-',c,m,mo,'-']]})});
     document.getElementById('ggmo').value='';
     document.getElementById('ggd').value='';
     await loadGS();updDash();
@@ -2264,6 +2282,46 @@ async function eliminarProv(pv){
     if(!r.ok){var t=await r.text();throw new Error('HTTP '+r.status+': '+t.substring(0,100));}
     await loadPROV();
     toast('Proveedor eliminado');
+  }catch(e){toast('Error: '+e.message);}
+}
+
+async function eliminarGasto(rowIdx){
+  if(!confirm('Eliminar este gasto? Esta accion no se puede deshacer.')) return;
+  try{
+    var meta=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SID,{headers:{Authorization:'Bearer '+TOK}});
+    var mj=await meta.json();
+    var sheetId=null;
+    for(var i=0;i<mj.sheets.length;i++){
+      if(mj.sheets[i].properties.title==='💰 Gastos'){sheetId=mj.sheets[i].properties.sheetId;break;}
+    }
+    if(sheetId===null){toast('Hoja no encontrada');return;}
+    var r=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SID+':batchUpdate',{
+      method:'POST',headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
+      body:JSON.stringify({requests:[{deleteDimension:{range:{sheetId:sheetId,dimension:'ROWS',
+        startIndex:rowIdx-1,endIndex:rowIdx}}}]})});
+    if(!r.ok){var t=await r.text();throw new Error('HTTP '+r.status+': '+t.substring(0,100));}
+    await loadGS();updDash();
+    toast('Gasto eliminado');
+  }catch(e){toast('Error: '+e.message);}
+}
+
+async function eliminarVenta(rowIdx){
+  if(!confirm('Eliminar esta venta? Esta accion no se puede deshacer.')) return;
+  try{
+    var meta=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SID,{headers:{Authorization:'Bearer '+TOK}});
+    var mj=await meta.json();
+    var sheetId=null;
+    for(var i=0;i<mj.sheets.length;i++){
+      if(mj.sheets[i].properties.title==='💵 Ventas'){sheetId=mj.sheets[i].properties.sheetId;break;}
+    }
+    if(sheetId===null){toast('Hoja no encontrada');return;}
+    var r=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SID+':batchUpdate',{
+      method:'POST',headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
+      body:JSON.stringify({requests:[{deleteDimension:{range:{sheetId:sheetId,dimension:'ROWS',
+        startIndex:rowIdx-1,endIndex:rowIdx}}}]})});
+    if(!r.ok){var t=await r.text();throw new Error('HTTP '+r.status+': '+t.substring(0,100));}
+    await loadVN();updDash();
+    toast('Venta eliminada');
   }catch(e){toast('Error: '+e.message);}
 }
 
