@@ -2006,177 +2006,161 @@ function rendResultados(){
   document.getElementById('res-anio-label').textContent=anio;
   TC=parseFloat(document.getElementById('tc').value)||43;
 
-  var MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Setiembre','Octubre','Noviembre','Diciembre'];
+  var MESES_SHORT=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Set','Oct','Nov','Dic'];
 
-  // Ingresos cobrados por mes
+  // -- Ingresos cobrados por mes --
   var ingMes=Array(12).fill(0);
   VN.filter(function(v){return v.est==='Cobrado';}).forEach(function(v){
     var d=parseFechaGS(v.fecha);
     if(!d||d.anio!==anio) return;
-    ingMes[d.mes]+= v.mon==='USD'?v.monto:v.monto/TC;
+    ingMes[d.mes]+=v.mon==='USD'?v.monto:v.monto/TC;
   });
 
-  // Gastos por mes y categoria
+  // -- Gastos por categoria por mes --
+  // Categories: Materiales, Mano de obra, Flete, Herrajes, Otros
+  // Special: Vicry (by prov name), Admin Vicry 10%, Roturas (by cat)
+  var cats=['Materiales','Mano de obra','Flete','Herrajes','Otros'];
+  var catMes={};
+  cats.forEach(function(c){catMes[c]=Array(12).fill(0);});
   var vicryMes=Array(12).fill(0);
   var roturaMes=Array(12).fill(0);
-  var otrosMes=Array(12).fill(0);
   var vicryDetalle=[];
 
   GS.forEach(function(g){
     var d=parseFechaGS(g.fecha);
     if(!d||d.anio!==anio) return;
     var monto=g.mon==='USD'?g.monto:g.monto/TC;
-    if(g.prov&&g.prov.toLowerCase().indexOf('vicry')!==-1){
+    var esVicry=g.prov&&g.prov.toLowerCase().indexOf('vicry')!==-1;
+    if(esVicry){
       vicryMes[d.mes]+=monto;
-      vicryDetalle.push({fecha:g.fecha,obra:g.obra,desc:g.desc,monto:monto,mes:d.mes,prov:g.prov});
+      vicryDetalle.push({fecha:g.fecha,obra:g.obra,desc:g.desc,monto:monto,mes:d.mes});
     } else if(g.cat==='Roturas'){
       roturaMes[d.mes]+=monto;
     } else {
-      otrosMes[d.mes]+=monto;
+      var k=cats.indexOf(g.cat)!==-1?g.cat:'Otros';
+      catMes[k][d.mes]+=monto;
     }
   });
 
-  // Admin Vicry = 10% sobre materiales Vicry
   var adminVicryMes=vicryMes.map(function(v){return v*0.10;});
 
-  // Build annual totals
+  // -- Totals --
   var totIng=ingMes.reduce(function(s,v){return s+v;},0);
   var totVicry=vicryMes.reduce(function(s,v){return s+v;},0);
   var totAdmin=adminVicryMes.reduce(function(s,v){return s+v;},0);
   var totRotura=roturaMes.reduce(function(s,v){return s+v;},0);
-  var totOtros=otrosMes.reduce(function(s,v){return s+v;},0);
-  var totCos=totVicry+totAdmin+totRotura+totOtros;
+  var totCats={};
+  cats.forEach(function(c){totCats[c]=catMes[c].reduce(function(s,v){return s+v;},0);});
+  var totCos=totVicry+totAdmin+totRotura+cats.reduce(function(s,c){return s+totCats[c];},0);
   var totNet=totIng-totCos;
 
-  // KPIs
+  // -- KPIs --
   document.getElementById('res-ing').textContent='$'+Math.round(totIng).toLocaleString();
   document.getElementById('res-cos').textContent='$'+Math.round(totCos).toLocaleString();
   var netEl=document.getElementById('res-net');
   netEl.textContent='$'+Math.round(totNet).toLocaleString();
   netEl.style.color=totNet>=0?'var(--sage-dkr)':'var(--rojo)';
 
-  // Transposed table: rows = concepts, columns = months
-  var S=function(n,bold,color){
-    var s=n>0?'$'+Math.round(n).toLocaleString():'-';
-    var st='text-align:right;font-family:var(--serif);padding:9px 10px;';
-    if(bold) st+='font-weight:500;';
-    if(color) st+='color:'+color+';';
-    return '<td style="'+st+'">'+s+'</td>';
+  // -- Table helpers --
+  var S=function(n,color){
+    if(!n||n===0) return '<td style="text-align:right;padding:8px 10px;color:var(--gry-lt);font-size:12px">-</td>';
+    var col=color||'inherit';
+    return '<td style="text-align:right;padding:8px 10px;font-family:var(--serif);color:'+col+'">$'+Math.round(n).toLocaleString()+'</td>';
   };
+  var ST=function(n,color){
+    var col=color||(n>=0?'var(--sage-dkr)':'var(--rojo)');
+    return '<td style="text-align:right;padding:8px 10px;font-family:var(--serif);font-weight:500;color:'+col+';background:var(--sage-pl)">$'+Math.round(n).toLocaleString()+'</td>';
+  };
+  var TH=function(txt,style){return '<th style="text-align:right;padding:8px 10px;min-width:68px;'+(style||'')+'">'+txt+'</th>';};
+  var LBL=function(txt,indent,bold,color){
+    var st='padding:9px 14px;'+(indent?'padding-left:24px;':'')+(bold?'font-weight:500;':'')+(color?'color:'+color+';':'');
+    return '<td style="'+st+'">'+txt+'</td>';
+  };
+  var SEP=function(txt){return '<tr><td colspan="14" style="background:var(--blk);color:rgba(255,255,255,.6);font-size:10px;text-transform:uppercase;letter-spacing:1.2px;padding:5px 14px">'+txt+'</td></tr>';};
 
-  var MES_SHORT=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Set','Oct','Nov','Dic'];
-
-  // Header row: months
-  var t='<table style="min-width:900px"><thead><tr>';
-  t+='<th style="text-align:left;min-width:160px;padding:9px 12px">Concepto</th>';
-  for(var m=0;m<12;m++){
-    t+='<th style="text-align:right;padding:9px 10px;min-width:70px">'+MES_SHORT[m]+'</th>';
-  }
-  t+='<th style="text-align:right;padding:9px 10px;min-width:80px;background:var(--blk);color:var(--wht)">Total</th>';
+  // -- Build transposed table --
+  var t='<table style="min-width:960px;font-size:13px"><thead><tr>';
+  t+='<th style="text-align:left;min-width:180px;padding:8px 14px">Concepto</th>';
+  MESES_SHORT.forEach(function(m){t+=TH(m);});
+  t+=TH('Total','background:var(--blk);color:rgba(255,255,255,.7)');
   t+='</tr></thead><tbody>';
 
-  var thStyle='text-align:left;font-weight:500;padding:9px 12px;';
-  var sepStyle='background:var(--sage-pl);color:var(--gry);font-size:10px;text-transform:uppercase;letter-spacing:1px;';
+  // INGRESOS
+  t+=SEP('Ingresos');
+  t+='<tr>'+LBL('Ventas',false,false,'var(--sage-dkr)');
+  ingMes.forEach(function(v){t+=S(v,'var(--sage-dkr)');});
+  t+=ST(totIng,'var(--sage-dkr)')+'</tr>';
 
-  // -- INGRESOS --
-  t+='<tr><td colspan="14" style="'+sepStyle+'padding:6px 12px">Ingresos</td></tr>';
-  t+='<tr style="background:rgba(90,122,89,.06)">';
-  t+='<td style="'+thStyle+'color:var(--sage-dkr)">Ventas</td>';
-  for(var m=0;m<12;m++) t+=S(ingMes[m],false,'var(--sage-dkr)');
-  t+=S(totIng,true,'var(--sage-dkr)');
-  t+='</tr>';
-  t+='<tr>';
-  t+='<td style="'+thStyle+'color:var(--sage-dkr)">Otros ingresos</td>';
-  for(var m=0;m<12;m++) t+='<td style="text-align:right;padding:9px 10px;font-size:11px;color:var(--gry)">-</td>';
-  t+='<td style="text-align:right;padding:9px 10px;font-size:11px;color:var(--gry)">-</td>';
-  t+='</tr>';
-  t+='<tr style="border-top:1px solid var(--gry-lt)">';
-  t+='<td style="'+thStyle+'">Total ingresos</td>';
-  for(var m=0;m<12;m++) t+=S(ingMes[m],true,'var(--sage-dkr)');
-  t+=S(totIng,true,'var(--sage-dkr)');
-  t+='</tr>';
+  t+='<tr>'+LBL('Otros ingresos',false,false,'var(--sage-dkr)');
+  for(var m=0;m<12;m++) t+='<td style="text-align:right;padding:8px 10px;color:var(--gry-lt);font-size:12px">-</td>';
+  t+='<td style="text-align:right;padding:8px 10px;color:var(--gry-lt);font-size:12px">-</td></tr>';
 
-  // -- COSTOS --
-  t+='<tr><td colspan="14" style="'+sepStyle+'padding:6px 12px">Costos y gastos</td></tr>';
+  t+='<tr style="border-top:1px solid var(--gry-lt)">'+LBL('Total ingresos',false,true,'var(--sage-dkr)');
+  ingMes.forEach(function(v){t+=ST(v,'var(--sage-dkr)');});
+  t+=ST(totIng,'var(--sage-dkr)')+'</tr>';
+
+  // COSTOS
+  t+=SEP('Costos y gastos');
 
   // Vicry materiales
-  t+='<tr>';
-  t+='<td style="'+thStyle+'">Mat. Vicry</td>';
-  for(var m=0;m<12;m++) t+=S(vicryMes[m]);
-  t+=S(totVicry,true);
-  t+='</tr>';
+  t+='<tr>'+LBL('Mat. Vicry (Vicry)',false,false);
+  vicryMes.forEach(function(v){t+=S(v);});
+  t+=ST(totVicry)+'</tr>';
 
   // Admin Vicry 10%
-  t+='<tr style="background:rgba(196,154,58,.06)">';
-  t+='<td style="'+thStyle+'color:var(--ambar)">Administracion Vicry (10%)</td>';
-  for(var m=0;m<12;m++) t+=S(adminVicryMes[m],false,'var(--ambar)');
-  t+=S(totAdmin,true,'var(--ambar)');
-  t+='</tr>';
+  t+='<tr style="background:rgba(196,154,58,.05)">'+LBL('Administracion Vicry (10%)',true,false,'var(--ambar)');
+  adminVicryMes.forEach(function(v){t+=S(v,'var(--ambar)');});
+  t+=ST(totAdmin,'var(--ambar)')+'</tr>';
+
+  // Each gastos category
+  cats.forEach(function(c){
+    t+='<tr>'+LBL(c,false,false);
+    catMes[c].forEach(function(v){t+=S(v);});
+    t+=ST(totCats[c])+'</tr>';
+  });
 
   // Roturas
-  t+='<tr>';
-  t+='<td style="'+thStyle+'">Roturas</td>';
-  for(var m=0;m<12;m++) t+=S(roturaMes[m],false,'var(--rojo)');
-  t+=S(totRotura,true,'var(--rojo)');
-  t+='</tr>';
-
-  // Otros gastos
-  t+='<tr>';
-  t+='<td style="'+thStyle+'">Otros gastos</td>';
-  for(var m=0;m<12;m++) t+=S(otrosMes[m]);
-  t+=S(totOtros,true);
-  t+='</tr>';
+  t+='<tr>'+LBL('Roturas',false,false,'var(--rojo)');
+  roturaMes.forEach(function(v){t+=S(v,'var(--rojo)');});
+  t+=ST(totRotura,'var(--rojo)')+'</tr>';
 
   // Total costos
-  t+='<tr style="border-top:1px solid var(--gry-lt)">';
-  t+='<td style="'+thStyle+'">Total costos</td>';
+  t+='<tr style="border-top:1px solid var(--gry-lt)">'+LBL('Total costos',false,true);
+  var totCosMes=Array(12).fill(0);
   for(var m=0;m<12;m++){
-    var cosMes=vicryMes[m]+adminVicryMes[m]+roturaMes[m]+otrosMes[m];
-    t+=S(cosMes,true);
+    var cm=vicryMes[m]+adminVicryMes[m]+roturaMes[m];
+    cats.forEach(function(c){cm+=catMes[c][m];});
+    totCosMes[m]=cm;
+    t+=ST(cm);
   }
-  t+=S(totCos,true);
-  t+='</tr>';
+  t+=ST(totCos)+'</tr>';
 
-  // -- RESULTADO --
-  t+='<tr style="border-top:2px solid var(--blk)">';
-  t+='<td style="'+thStyle+'font-size:14px">Resultado</td>';
+  // RESULTADO
+  t+=SEP('Resultado');
+  t+='<tr style="border-top:2px solid var(--blk)">'+LBL('Resultado neto',false,true);
   for(var m=0;m<12;m++){
-    var cosMes=vicryMes[m]+adminVicryMes[m]+roturaMes[m]+otrosMes[m];
-    var netMes=ingMes[m]-cosMes;
-    var nc=netMes>=0?'var(--sage-dkr)':'var(--rojo)';
-    t+=S(netMes,true,nc);
+    var net=ingMes[m]-totCosMes[m];
+    var nc=net>=0?'var(--sage-dkr)':'var(--rojo)';
+    t+='<td style="text-align:right;padding:8px 10px;font-family:var(--serif);font-weight:500;color:'+nc+'">$'+Math.round(net).toLocaleString()+'</td>';
   }
   var ncTot=totNet>=0?'var(--sage-dkr)':'var(--rojo)';
-  t+='<td style="text-align:right;font-family:var(--serif);font-weight:500;font-size:15px;color:'+ncTot+';padding:9px 10px;background:var(--blk);color:'+(totNet>=0?'#90E090':'#F08080')+'">$'+Math.round(totNet).toLocaleString()+'</td>';
-  t+='</tr>';
+  t+='<td style="text-align:right;padding:8px 10px;font-family:var(--serif);font-weight:500;font-size:15px;background:var(--blk);color:'+(totNet>=0?'#90E090':'#F08080')+'">$'+Math.round(totNet).toLocaleString()+'</td>';
+  t+='</tr></tbody></table>';
 
-  t+='</tbody></table>';
   document.getElementById('res-tabla').innerHTML=t;
 
-  // Vicry detail table
+  // -- Vicry detail table --
   if(!vicryDetalle.length){
-    document.getElementById('res-vicry').innerHTML='<div style="text-align:center;padding:28px;color:var(--gry)">Sin gastos de Vicry en '+anio+'. Registra gastos con categoria "Vicry - Materiales" para verlos aqui.</div>';
+    document.getElementById('res-vicry').innerHTML='<div style="text-align:center;padding:28px;color:var(--gry)">Sin gastos de Vicry en '+anio+'. Registra gastos con proveedor Vicry para verlos aqui.</div>';
   } else {
     var vt='<table><tr><th>Fecha</th><th>Obra</th><th>Descripcion</th><th style="text-align:right">Materiales USD</th><th style="text-align:right">Admin 10%</th><th style="text-align:right">Total</th></tr>';
     var vtotMat=0,vtotAdm=0;
     vicryDetalle.sort(function(a,b){return a.mes-b.mes;}).forEach(function(g){
       var adm=Math.round(g.monto*0.10*100)/100;
       vtotMat+=g.monto;vtotAdm+=adm;
-      vt+='<tr>'
-        +'<td>'+g.fecha+'</td>'
-        +'<td style="font-size:11px;color:var(--gry)">'+g.obra+'</td>'
-        +'<td>'+g.desc+'</td>'
-        +'<td style="text-align:right;font-family:var(--serif)">$'+Math.round(g.monto).toLocaleString()+'</td>'
-        +'<td style="text-align:right;font-family:var(--serif);color:var(--ambar)">$'+adm.toLocaleString()+'</td>'
-        +'<td style="text-align:right;font-family:var(--serif);font-weight:500">$'+Math.round(g.monto+adm).toLocaleString()+'</td>'
-        +'</tr>';
+      vt+='<tr><td>'+g.fecha+'</td><td style="font-size:11px;color:var(--gry)">'+g.obra+'</td><td>'+g.desc+'</td><td style="text-align:right;font-family:var(--serif)">$'+Math.round(g.monto).toLocaleString()+'</td><td style="text-align:right;font-family:var(--serif);color:var(--ambar)">$'+adm.toLocaleString()+'</td><td style="text-align:right;font-family:var(--serif);font-weight:500">$'+Math.round(g.monto+adm).toLocaleString()+'</td></tr>';
     });
-    vt+='<tr style="border-top:2px solid var(--blk)">'
-      +'<td colspan="3" style="font-weight:500">TOTAL</td>'
-      +'<td style="text-align:right;font-family:var(--serif);font-weight:500">$'+Math.round(vtotMat).toLocaleString()+'</td>'
-      +'<td style="text-align:right;font-family:var(--serif);color:var(--ambar);font-weight:500">$'+Math.round(vtotAdm).toLocaleString()+'</td>'
-      +'<td style="text-align:right;font-family:var(--serif);font-weight:500">$'+Math.round(vtotMat+vtotAdm).toLocaleString()+'</td>'
-      +'</tr></table>';
+    vt+='<tr style="border-top:2px solid var(--blk)"><td colspan="3" style="font-weight:500">TOTAL</td><td style="text-align:right;font-family:var(--serif);font-weight:500">$'+Math.round(vtotMat).toLocaleString()+'</td><td style="text-align:right;font-family:var(--serif);color:var(--ambar);font-weight:500">$'+Math.round(vtotAdm).toLocaleString()+'</td><td style="text-align:right;font-family:var(--serif);font-weight:500">$'+Math.round(vtotMat+vtotAdm).toLocaleString()+'</td></tr></table>';
     document.getElementById('res-vicry').innerHTML=vt;
   }
 }
