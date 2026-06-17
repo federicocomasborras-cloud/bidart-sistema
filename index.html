@@ -637,6 +637,17 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
   </div>
 </div>
 </div>
+<div id="edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9998;align-items:center;justify-content:center">
+  <div style="background:var(--wht);border-radius:12px;padding:24px;width:480px;max-width:94vw">
+    <div id="edit-modal-title" style="font-family:var(--serif);font-size:18px;margin-bottom:18px">Editar</div>
+    <div id="edit-modal-body" style="display:flex;flex-direction:column;gap:12px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px">
+      <button class="btn" onclick="closeEditModal()">Cancelar</button>
+      <button class="btn btn-p" id="edit-modal-save" onclick="saveEdit()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <div id="cli-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9998;align-items:center;justify-content:center">
@@ -1315,7 +1326,7 @@ function rendVN(){
     h='<table><tr><th>Fecha</th><th>Obra</th><th>Cliente</th><th>Mon</th><th style="text-align:right">Monto</th><th style="text-align:right">Equiv USD</th><th>Estado</th><th></th></tr>';
     for(var i=0;i<d.length;i++){var v=d[i];
       var eq=v.mon==='USD'?v.monto:Math.round(v.monto/TC);
-      h+='<tr><td>'+v.fecha+'</td><td style="font-size:11px;color:var(--gry)">'+v.obra+'</td><td>'+v.cli+'</td><td><span class="bdg '+(v.mon==='USD'?'bg2':'be')+'">'+v.mon+'</span></td><td style="text-align:right;font-family:var(--serif)">$'+v.monto.toLocaleString()+'</td><td style="text-align:right;font-family:var(--serif);color:var(--sage-dkr)">$'+eq.toLocaleString()+'</td><td>'+bdg(v.est)+'</td><td><button class="btn" onclick="eliminarVenta('+v.rowIdx+')" style="padding:3px 8px;font-size:11px;color:var(--rojo)">x</button></td></tr>';
+      h+='<tr><td>'+v.fecha+'</td><td style="font-size:11px;color:var(--gry)">'+v.obra+'</td><td>'+v.cli+'</td><td><span class="bdg '+(v.mon==='USD'?'bg2':'be')+'">'+v.mon+'</span></td><td style="text-align:right;font-family:var(--serif)">$'+v.monto.toLocaleString()+'</td><td style="text-align:right;font-family:var(--serif);color:var(--sage-dkr)">$'+eq.toLocaleString()+'</td><td>'+bdg(v.est)+'</td><td><button class="btn" onclick="editarVenta('+v.rowIdx+')" style="padding:3px 8px;font-size:11px;margin-right:4px">Editar</button><button class="btn" onclick="eliminarVenta('+v.rowIdx+')" style="padding:3px 8px;font-size:11px;color:var(--rojo)">x</button></td></tr>';
     }
     h+='</table>';
   }else{h='<div style="text-align:center;padding:28px;color:var(--gry)">Sin ventas en este rango</div>';}
@@ -1328,7 +1339,7 @@ function rendGS(){
     h='<table><tr><th>Fecha</th><th>Obra</th><th>Descripcion</th><th>Proveedor</th><th>Categoria</th><th>Mon</th><th style="text-align:right">Monto</th><th></th></tr>';
     var d=GS.slice().reverse();
     for(var i=0;i<d.length;i++){var g=d[i];
-      h+='<tr><td>'+g.fecha+'</td><td style="font-size:11px;color:var(--gry)">'+g.obra+'</td><td>'+g.desc+'</td><td style="font-size:12px">'+(g.prov&&g.prov!=='-'?'<span class="bdg bg2">'+g.prov+'</span>':'-')+'</td><td><span class="bdg be">'+g.cat+'</span></td><td style="font-size:11px">'+g.mon+'</td><td style="text-align:right;font-family:var(--serif)">$'+g.monto.toLocaleString()+'</td><td><button class="btn" onclick="eliminarGasto('+g.rowIdx+')" style="padding:3px 8px;font-size:11px;color:var(--rojo)">x</button></td></tr>';
+      h+='<tr><td>'+g.fecha+'</td><td style="font-size:11px;color:var(--gry)">'+g.obra+'</td><td>'+g.desc+'</td><td style="font-size:12px">'+(g.prov&&g.prov!=='-'?'<span class="bdg bg2">'+g.prov+'</span>':'-')+'</td><td><span class="bdg be">'+g.cat+'</span></td><td style="font-size:11px">'+g.mon+'</td><td style="text-align:right;font-family:var(--serif)">$'+g.monto.toLocaleString()+'</td><td><button class="btn" onclick="editarGasto('+g.rowIdx+')" style="padding:3px 8px;font-size:11px;margin-right:4px">Editar</button><button class="btn" onclick="eliminarGasto('+g.rowIdx+')" style="padding:3px 8px;font-size:11px;color:var(--rojo)">x</button></td></tr>';
     }
     h+='</table>';
   }else{h='<div style="text-align:center;padding:28px;color:var(--gry)">Sin gastos</div>';}
@@ -2307,6 +2318,133 @@ async function eliminarVenta(rowIdx){
     await loadVN();updDash();
     toast('Venta eliminada');
   }catch(e){toast('Error: '+e.message);}
+}
+
+
+var editCtx = null;
+
+function closeEditModal(){
+  document.getElementById('edit-modal').style.display='none';
+  editCtx=null;
+}
+
+function mkField(id,label,val,type,opts){
+  var div=document.createElement('div');
+  div.className='fg';
+  var lbl=document.createElement('label');
+  lbl.className='fl';lbl.textContent=label;
+  var inp;
+  if(opts){
+    inp=document.createElement('select');inp.id=id;
+    opts.forEach(function(o){
+      var op=document.createElement('option');op.value=o;op.textContent=o;
+      if(o===val)op.selected=true;
+      inp.appendChild(op);
+    });
+  } else {
+    inp=document.createElement('input');
+    inp.type=type||'text';inp.id=id;inp.value=val||'';
+  }
+  div.appendChild(lbl);div.appendChild(inp);
+  return div;
+}
+
+function fv(id){return document.getElementById(id)?document.getElementById(id).value:'';}
+
+function editarGasto(rowIdx){
+  var g=null;
+  for(var i=0;i<GS.length;i++){if(GS[i].rowIdx===rowIdx){g=GS[i];break;}}
+  if(!g){toast('Gasto no encontrado');return;}
+  editCtx={type:'gasto',rowIdx:rowIdx};
+  document.getElementById('edit-modal-title').textContent='Editar gasto';
+  var body=document.getElementById('edit-modal-body');
+  body.innerHTML='';
+  var row1=document.createElement('div');row1.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:12px';
+  row1.appendChild(mkField('ef-fecha','Fecha',g.fecha,'text'));
+  row1.appendChild(mkField('ef-obra','Obra',g.obra,'text'));
+  body.appendChild(row1);
+  var row2=document.createElement('div');row2.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:12px';
+  row2.appendChild(mkField('ef-desc','Descripcion',g.desc,'text'));
+  row2.appendChild(mkField('ef-prov','Proveedor',g.prov,'text'));
+  body.appendChild(row2);
+  var row3=document.createElement('div');row3.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px';
+  row3.appendChild(mkField('ef-cat','Categoria',g.cat,null,['Materiales','Mano de obra','Flete','Herrajes','Roturas','Otros']));
+  row3.appendChild(mkField('ef-mon','Moneda',g.mon,null,['UYU','USD']));
+  row3.appendChild(mkField('ef-monto','Monto',g.monto,'number'));
+  body.appendChild(row3);
+  document.getElementById('edit-modal').style.display='flex';
+}
+
+function editarVenta(rowIdx){
+  var v=null;
+  for(var i=0;i<VN.length;i++){if(VN[i].rowIdx===rowIdx){v=VN[i];break;}}
+  if(!v){toast('Venta no encontrada');return;}
+  editCtx={type:'venta',rowIdx:rowIdx};
+  document.getElementById('edit-modal-title').textContent='Editar venta';
+  var body=document.getElementById('edit-modal-body');
+  body.innerHTML='';
+  var row1=document.createElement('div');row1.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px';
+  row1.appendChild(mkField('ev-fecha','Fecha',v.fecha,'text'));
+  row1.appendChild(mkField('ev-obra','Obra',v.obra,'text'));
+  row1.appendChild(mkField('ev-cli','Cliente',v.cli,'text'));
+  body.appendChild(row1);
+  var row2=document.createElement('div');row2.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px';
+  row2.appendChild(mkField('ev-tipo','Tipo',v.tipo,null,['Pago total','Anticipo 50%','Saldo final','Pendiente de cobro']));
+  row2.appendChild(mkField('ev-mon','Moneda',v.mon,null,['USD','UYU']));
+  row2.appendChild(mkField('ev-monto','Monto',v.monto,'number'));
+  body.appendChild(row2);
+  var row3=document.createElement('div');row3.style.cssText='display:grid;grid-template-columns:1fr;gap:12px';
+  row3.appendChild(mkField('ev-est','Estado',v.est,null,['Cobrado','Pendiente']));
+  body.appendChild(row3);
+  document.getElementById('edit-modal').style.display='flex';
+}
+
+async function saveEdit(){
+  if(!editCtx) return;
+  var btn=document.getElementById('edit-modal-save');
+  btn.disabled=true;btn.textContent='Guardando...';
+  try{
+    if(editCtx.type==='gasto'){
+      var fecha=fv('ef-fecha');
+      var obra=fv('ef-obra');
+      var desc=fv('ef-desc');
+      var prov=fv('ef-prov');
+      var cat=fv('ef-cat');
+      var mon=fv('ef-mon');
+      var monto=parseFloat(fv('ef-monto'))||0;
+      var vals=[null,fecha,desc,obra,'-','-',cat,mon,monto,prov||'-'];
+      var url='https://sheets.googleapis.com/v4/spreadsheets/'+SID+'/values/'
+        +encodeURIComponent('💰 Gastos!A'+editCtx.rowIdx+':J'+editCtx.rowIdx)
+        +'?valueInputOption=USER_ENTERED';
+      var r=await fetch(url,{method:'PUT',
+        headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
+        body:JSON.stringify({values:[vals]})});
+      if(!r.ok){var t=await r.text();throw new Error('HTTP '+r.status+': '+t.substring(0,100));}
+      await loadGS();updDash();
+      toast('Gasto actualizado OK');
+    } else if(editCtx.type==='venta'){
+      var fecha=fv('ev-fecha');
+      var obra=fv('ev-obra');
+      var cli=fv('ev-cli');
+      var tipo=fv('ev-tipo');
+      var mon=fv('ev-mon');
+      var monto=parseFloat(fv('ev-monto'))||0;
+      var est=fv('ev-est');
+      var eq=mon==='USD'?monto:Math.round(monto/TC);
+      var vals=[null,fecha,obra,cli,null,tipo,'-',est,mon,monto,TC,eq];
+      var url='https://sheets.googleapis.com/v4/spreadsheets/'+SID+'/values/'
+        +encodeURIComponent('💵 Ventas!A'+editCtx.rowIdx+':L'+editCtx.rowIdx)
+        +'?valueInputOption=USER_ENTERED';
+      var r=await fetch(url,{method:'PUT',
+        headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
+        body:JSON.stringify({values:[vals]})});
+      if(!r.ok){var t=await r.text();throw new Error('HTTP '+r.status+': '+t.substring(0,100));}
+      await loadVN();updDash();
+      toast('Venta actualizada OK');
+    }
+    closeEditModal();
+  }catch(e){toast('Error: '+e.message);}
+  finally{btn.disabled=false;btn.textContent='Guardar cambios';}
 }
 
 function saveCfg(){
