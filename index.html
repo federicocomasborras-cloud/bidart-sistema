@@ -1952,7 +1952,9 @@ function calcUni(){
 function parseFechaGS(f){
   var p=f.split('/');
   if(p.length!==3) return null;
-  return {anio:parseInt(p[2]),mes:parseInt(p[1])-1};
+  var anio=parseInt(p[2]);
+  if(anio<100) anio+=2000;
+  return {anio:anio,mes:parseInt(p[1])-1};
 }
 
 function rendResultados(){
@@ -2035,8 +2037,18 @@ function rendResultados(){
   // -- INGRESOS --
   t+='<tr><td colspan="14" style="'+sepStyle+'padding:6px 12px">Ingresos</td></tr>';
   t+='<tr style="background:rgba(90,122,89,.06)">';
-  t+='<td style="'+thStyle+'color:var(--sage-dkr)">Cobros del periodo</td>';
+  t+='<td style="'+thStyle+'color:var(--sage-dkr)">Ventas</td>';
   for(var m=0;m<12;m++) t+=S(ingMes[m],false,'var(--sage-dkr)');
+  t+=S(totIng,true,'var(--sage-dkr)');
+  t+='</tr>';
+  t+='<tr>';
+  t+='<td style="'+thStyle+'color:var(--sage-dkr)">Otros ingresos</td>';
+  for(var m=0;m<12;m++) t+='<td style="text-align:right;padding:9px 10px;font-size:11px;color:var(--gry)">-</td>';
+  t+='<td style="text-align:right;padding:9px 10px;font-size:11px;color:var(--gry)">-</td>';
+  t+='</tr>';
+  t+='<tr style="border-top:1px solid var(--gry-lt)">';
+  t+='<td style="'+thStyle+'">Total ingresos</td>';
+  for(var m=0;m<12;m++) t+=S(ingMes[m],true,'var(--sage-dkr)');
   t+=S(totIng,true,'var(--sage-dkr)');
   t+='</tr>';
 
