@@ -2009,51 +2009,92 @@ function rendResultados(){
   netEl.textContent='$'+Math.round(totNet).toLocaleString();
   netEl.style.color=totNet>=0?'var(--sage-dkr)':'var(--rojo)';
 
-  // Monthly table
-  var t='<table><tr>'
-    +'<th>Mes</th>'
-    +'<th style="text-align:right">Ingresos</th>'
-    +'<th style="text-align:right">Mat. Vicry</th>'
-    +'<th style="text-align:right">Admin Vicry (10%)</th>'
-    +'<th style="text-align:right">Roturas</th>'
-    +'<th style="text-align:right">Otros gastos</th>'
-    +'<th style="text-align:right">Total costos</th>'
-    +'<th style="text-align:right">Resultado</th>'
-    +'</tr>';
+  // Transposed table: rows = concepts, columns = months
+  var S=function(n,bold,color){
+    var s=n>0?'$'+Math.round(n).toLocaleString():'-';
+    var st='text-align:right;font-family:var(--serif);padding:9px 10px;';
+    if(bold) st+='font-weight:500;';
+    if(color) st+='color:'+color+';';
+    return '<td style="'+st+'">'+s+'</td>';
+  };
 
-  var S=function(n){return n>0?'$'+Math.round(n).toLocaleString():'-';};
+  var MES_SHORT=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Set','Oct','Nov','Dic'];
 
+  // Header row: months
+  var t='<table style="min-width:900px"><thead><tr>';
+  t+='<th style="text-align:left;min-width:160px;padding:9px 12px">Concepto</th>';
+  for(var m=0;m<12;m++){
+    t+='<th style="text-align:right;padding:9px 10px;min-width:70px">'+MES_SHORT[m]+'</th>';
+  }
+  t+='<th style="text-align:right;padding:9px 10px;min-width:80px;background:var(--blk);color:var(--wht)">Total</th>';
+  t+='</tr></thead><tbody>';
+
+  var thStyle='text-align:left;font-weight:500;padding:9px 12px;';
+  var sepStyle='background:var(--sage-pl);color:var(--gry);font-size:10px;text-transform:uppercase;letter-spacing:1px;';
+
+  // -- INGRESOS --
+  t+='<tr><td colspan="14" style="'+sepStyle+'padding:6px 12px">Ingresos</td></tr>';
+  t+='<tr style="background:rgba(90,122,89,.06)">';
+  t+='<td style="'+thStyle+'color:var(--sage-dkr)">Cobros del periodo</td>';
+  for(var m=0;m<12;m++) t+=S(ingMes[m],false,'var(--sage-dkr)');
+  t+=S(totIng,true,'var(--sage-dkr)');
+  t+='</tr>';
+
+  // -- COSTOS --
+  t+='<tr><td colspan="14" style="'+sepStyle+'padding:6px 12px">Costos y gastos</td></tr>';
+
+  // Vicry materiales
+  t+='<tr>';
+  t+='<td style="'+thStyle+'">Mat. Vicry</td>';
+  for(var m=0;m<12;m++) t+=S(vicryMes[m]);
+  t+=S(totVicry,true);
+  t+='</tr>';
+
+  // Admin Vicry 10%
+  t+='<tr style="background:rgba(196,154,58,.06)">';
+  t+='<td style="'+thStyle+'color:var(--ambar)">Administracion Vicry (10%)</td>';
+  for(var m=0;m<12;m++) t+=S(adminVicryMes[m],false,'var(--ambar)');
+  t+=S(totAdmin,true,'var(--ambar)');
+  t+='</tr>';
+
+  // Roturas
+  t+='<tr>';
+  t+='<td style="'+thStyle+'">Roturas</td>';
+  for(var m=0;m<12;m++) t+=S(roturaMes[m],false,'var(--rojo)');
+  t+=S(totRotura,true,'var(--rojo)');
+  t+='</tr>';
+
+  // Otros gastos
+  t+='<tr>';
+  t+='<td style="'+thStyle+'">Otros gastos</td>';
+  for(var m=0;m<12;m++) t+=S(otrosMes[m]);
+  t+=S(totOtros,true);
+  t+='</tr>';
+
+  // Total costos
+  t+='<tr style="border-top:1px solid var(--gry-lt)">';
+  t+='<td style="'+thStyle+'">Total costos</td>';
+  for(var m=0;m<12;m++){
+    var cosMes=vicryMes[m]+adminVicryMes[m]+roturaMes[m]+otrosMes[m];
+    t+=S(cosMes,true);
+  }
+  t+=S(totCos,true);
+  t+='</tr>';
+
+  // -- RESULTADO --
+  t+='<tr style="border-top:2px solid var(--blk)">';
+  t+='<td style="'+thStyle+'font-size:14px">Resultado</td>';
   for(var m=0;m<12;m++){
     var cosMes=vicryMes[m]+adminVicryMes[m]+roturaMes[m]+otrosMes[m];
     var netMes=ingMes[m]-cosMes;
-    var hasData=ingMes[m]>0||cosMes>0;
     var nc=netMes>=0?'var(--sage-dkr)':'var(--rojo)';
-    var rowStyle=hasData?'':'opacity:.4';
-    t+='<tr style="'+rowStyle+'">'
-      +'<td style="font-weight:500">'+MESES[m]+'</td>'
-      +'<td style="text-align:right;font-family:var(--serif);color:var(--sage-dkr)">'+S(ingMes[m])+'</td>'
-      +'<td style="text-align:right;font-family:var(--serif)">'+S(vicryMes[m])+'</td>'
-      +'<td style="text-align:right;font-family:var(--serif);color:var(--ambar)">'+S(adminVicryMes[m])+'</td>'
-      +'<td style="text-align:right;font-family:var(--serif);color:var(--rojo)">'+S(roturaMes[m])+'</td>'
-      +'<td style="text-align:right;font-family:var(--serif)">'+S(otrosMes[m])+'</td>'
-      +'<td style="text-align:right;font-family:var(--serif)">'+S(cosMes)+'</td>'
-      +'<td style="text-align:right;font-family:var(--serif);font-weight:500;color:'+nc+'">'+S(netMes)+'</td>'
-      +'</tr>';
+    t+=S(netMes,true,nc);
   }
-
-  // Totals row
   var ncTot=totNet>=0?'var(--sage-dkr)':'var(--rojo)';
-  t+='<tr style="border-top:2px solid var(--blk)">'
-    +'<td style="font-weight:500">TOTAL</td>'
-    +'<td style="text-align:right;font-family:var(--serif);color:var(--sage-dkr);font-weight:500">$'+Math.round(totIng).toLocaleString()+'</td>'
-    +'<td style="text-align:right;font-family:var(--serif);font-weight:500">$'+Math.round(totVicry).toLocaleString()+'</td>'
-    +'<td style="text-align:right;font-family:var(--serif);color:var(--ambar);font-weight:500">$'+Math.round(totAdmin).toLocaleString()+'</td>'
-    +'<td style="text-align:right;font-family:var(--serif);color:var(--rojo);font-weight:500">$'+Math.round(totRotura).toLocaleString()+'</td>'
-    +'<td style="text-align:right;font-family:var(--serif);font-weight:500">$'+Math.round(totOtros).toLocaleString()+'</td>'
-    +'<td style="text-align:right;font-family:var(--serif);font-weight:500">$'+Math.round(totCos).toLocaleString()+'</td>'
-    +'<td style="text-align:right;font-family:var(--serif);font-size:16px;font-weight:500;color:'+ncTot+'">$'+Math.round(totNet).toLocaleString()+'</td>'
-    +'</tr></table>';
+  t+='<td style="text-align:right;font-family:var(--serif);font-weight:500;font-size:15px;color:'+ncTot+';padding:9px 10px;background:var(--blk);color:'+(totNet>=0?'#90E090':'#F08080')+'">$'+Math.round(totNet).toLocaleString()+'</td>';
+  t+='</tr>';
 
+  t+='</tbody></table>';
   document.getElementById('res-tabla').innerHTML=t;
 
   // Vicry detail table
