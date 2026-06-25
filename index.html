@@ -187,6 +187,7 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
     <button class="nb" onclick="go('clientes',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Clientes</button>
     <button class="nb" onclick="go('impuestos',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Impuestos</button>
     <button class="nb" onclick="go('resultados',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Resultados</button>
+    <button class="nb" onclick="go('estadocuenta',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Estado de cuenta</button>
     <button class="nb" onclick="go('proveedores',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Proveedores</button>
   </nav>
   <div class="sb-ft"><div class="u-av" id="uav">G</div><div><div class="u-nm" id="unm">-</div><div class="u-rl">Sistema Bidart</div></div></div>
@@ -256,6 +257,28 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
           <div class="fg"><label class="fl">Ubicacion</label><input id="cu" type="text" placeholder="Direccion"></div>
           <div class="fg"><label class="fl">N Presupuesto</label><input id="cn" type="text" readonly></div>
           <div class="fg"><label class="fl">Vendedor</label><input id="cv" type="text" value="Gustavo Bidart"></div>
+          <div class="fg"><label class="fl">Categoria de trabajo</label>
+            <select id="ccateg">
+              <option value="">-- Seleccionar --</option>
+              <option>Mampara</option><option>Espejo</option><option>Vidrio</option>
+              <option>DVH</option><option>Cerramiento</option><option>Reparacion</option><option>Otro</option>
+            </select>
+          </div>
+          <div class="fg"><label class="fl">Origen del cliente</label>
+            <select id="corigen">
+              <option value="">-- Seleccionar --</option>
+              <option>Instagram</option><option>WhatsApp</option><option>Recomendacion</option>
+              <option>Arquitecto / Disenador</option><option>Web</option><option>Local / Showroom</option>
+              <option>Cliente anterior</option><option>Otro</option>
+            </select>
+          </div>
+          <div class="fg"><label class="fl">Estado</label>
+            <select id="cestado">
+              <option>Nuevo</option><option>Enviado</option><option>En seguimiento</option>
+              <option>Aprobado</option><option>Rechazado</option><option>Vencido</option>
+            </select>
+          </div>
+          <div class="fg"><label class="fl">Valido hasta</label><input type="date" id="cvalido"></div>
         </div>
       </div>
       <div class="card">
@@ -353,7 +376,7 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
             <div class="fg"><label class="fl">Obra</label><select id="go2"></select></div>
             <div class="fg"><label class="fl">Descripcion</label><input type="text" id="gd" placeholder="Materiales..."></div>
             <div class="fg"><label class="fl">Proveedor</label><input type="text" id="gprov" list="prov-list" placeholder="Opcional"><datalist id="prov-list"></datalist></div>
-            <div class="fg"><label class="fl">Categoria</label><select id="gc"><option>Materiales</option><option>Mano de obra</option><option>Flete</option><option>Herrajes</option><option>Roturas</option><option>Otros</option></select></div>
+            <div class="fg"><label class="fl">Categoria</label><select id="gc"><option>Materiales</option><option>Mano de obra</option><option>Fletes y Peajes</option><option>Herrajes</option><option>Ferreteria</option><option>Silicona</option><option>Perfiles de Aluminio</option><option>Roturas</option><option>Otros</option></select></div>
             <div class="fg"><label class="fl">Moneda</label><select id="gm"><option>UYU</option><option>USD</option></select></div>
             <div class="fg"><label class="fl">Monto</label><input type="number" id="gmo" placeholder="0.00"></div>
             <div class="fg"><label class="fl"> </label><button class="btn btn-p" style="height:41px" onclick="guardarGasto()">Guardar</button></div>
@@ -610,6 +633,39 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
       </div>
     </div>
 
+    </div>
+
+    <div class="sc" id="sc-estadocuenta">
+      <div class="qc" style="margin-bottom:16px">
+        <div style="font-family:var(--serif);font-size:16px;margin-bottom:14px">Estado de cuenta por cliente</div>
+        <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap">
+          <div class="fg" style="flex:1;min-width:200px">
+            <label class="fl">Cliente</label>
+            <input type="text" id="ec-cli" list="ec-cli-list" placeholder="Buscar cliente..." oninput="rendEC()">
+            <datalist id="ec-cli-list"></datalist>
+          </div>
+          <div class="fg"><label class="fl">Desde</label><input type="date" id="ec-desde" oninput="rendEC()"></div>
+          <div class="fg"><label class="fl">Hasta</label><input type="date" id="ec-hasta" oninput="rendEC()"></div>
+          <button class="btn" onclick="document.getElementById('ec-cli').value='';document.getElementById('ec-desde').value='';document.getElementById('ec-hasta').value='';rendEC()">Limpiar</button>
+        </div>
+      </div>
+      <div class="kgrid" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+        <div class="kpi"><div class="klbl">Total facturado</div><div class="kval" id="ec-tot-fac">-</div><div class="ksub">USD</div></div>
+        <div class="kpi"><div class="klbl">Total cobrado</div><div class="kval" id="ec-tot-cob">-</div><div class="ksub">USD</div></div>
+        <div class="kpi a"><div class="klbl">Saldo pendiente</div><div class="kval" id="ec-tot-pen">-</div><div class="ksub">USD</div></div>
+      </div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="ct">Presupuestos</div>
+        <div id="ec-pres"><div style="color:var(--gry);font-size:13px">Selecciona un cliente para ver su estado de cuenta.</div></div>
+      </div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="ct">Ventas / Cobros</div>
+        <div id="ec-ventas"><div style="color:var(--gry);font-size:13px">-</div></div>
+      </div>
+      <div class="card">
+        <div class="ct">Obras asociadas</div>
+        <div id="ec-obras"><div style="color:var(--gry);font-size:13px">-</div></div>
+      </div>
     </div>
 
     <div class="sc" id="sc-proveedores">
@@ -1658,7 +1714,7 @@ function rendIT(){
     if(it.auto)tr.className='auto-row';
 
     if(it.auto){tr.appendChild(mkTd(it.tipo,'font-weight:500;color:var(--sage-dkr)'));}
-    else{tr.appendChild(mkSel(it.id,'tipo',it.tipo,['Espejo','Mampara','Baranda','Otro'],'85px'));}
+    else{tr.appendChild(mkSel(it.id,'tipo',it.tipo,['Espejo','Mampara','DVH','Baranda','Otro'],'85px'));}
 
     if(it.auto){tr.appendChild(mkTd(it.desc||it.amb,'color:var(--gry);font-size:11px;font-style:italic'));}
     else{tr.appendChild(mkInp(it.id,'amb',it.amb,'text','80px','Ambiente'));}
@@ -1796,7 +1852,14 @@ async function guardarPres(silent){
       +encodeURIComponent('📊 Presupuestos!A10:N10')+':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS';
     var presR=await fetch(presUrl,{method:'POST',
       headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
-      body:JSON.stringify({values:[[nro,hoy,'',cli,'',ubi,'En espera',ven,'','',Math.round(total*100)/100,'USD',Math.round(total*100)/100,'']]})});
+      body:JSON.stringify({values:[[nro,hoy,
+        (document.getElementById('cvalido')?(document.getElementById('cvalido').value||'').split('-').reverse().join('/'):''),
+        cli,'',ubi,
+        (document.getElementById('cestado')?document.getElementById('cestado').value:'En espera'),
+        ven,'','',Math.round(total*100)/100,'USD',Math.round(total*100)/100,
+        (document.getElementById('ccateg')?document.getElementById('ccateg').value:''),
+        (document.getElementById('corigen')?document.getElementById('corigen').value:'')
+      ]]})});
     if(!presR.ok){var pt=await presR.text();throw new Error('HTTP '+presR.status+': '+pt.substring(0,100));}
     IT=[];rendIT();await loadPR();
     toast('Presupuesto guardado OK');
@@ -2030,7 +2093,7 @@ function rendResultados(){
   // -- Gastos por categoria por mes --
   // Categories: Materiales, Mano de obra, Flete, Herrajes, Otros
   // Special: Vicry (by prov name), Admin Vicry 10%, Roturas (by cat)
-  var cats=['Materiales','Mano de obra','Flete','Herrajes','Otros'];
+  var cats=['Materiales','Mano de obra','Fletes y Peajes','Herrajes','Ferreteria','Silicona','Perfiles de Aluminio','Otros'];
   var catMes={};
   cats.forEach(function(c){catMes[c]=Array(12).fill(0);});
   var vicryMes=Array(12).fill(0);
@@ -2238,6 +2301,11 @@ async function ensureProvSheet(){
   await fetch(batchUrl,{method:'POST',headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
     body:JSON.stringify({requests:[{addSheet:{properties:{title:'🛒 Proveedores'}}}]})});
   await apiAdd('🛒 Proveedores',['Nombre','Contacto','Telefono','Email','Condiciones','Fecha alta']);
+  var hoyP=new Date().toLocaleDateString('es-UY');
+  var provIniciales=[['Vicry','','','','10% administracion',hoyP],['Adler','','','','',hoyP],['Abasur','','','','',hoyP],['Blendir','','','','',hoyP],['Ontil','','','','',hoyP]];
+  for(var pi=0;pi<provIniciales.length;pi++){
+    await apiAdd('🛒 Proveedores',provIniciales[pi]);
+  }
 }
 
 async function guardarProv(){
@@ -2368,7 +2436,7 @@ function editarGasto(rowIdx){
   row2.appendChild(mkField('ef-prov','Proveedor',g.prov,'text'));
   body.appendChild(row2);
   var row3=document.createElement('div');row3.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px';
-  row3.appendChild(mkField('ef-cat','Categoria',g.cat,null,['Materiales','Mano de obra','Flete','Herrajes','Roturas','Otros']));
+  row3.appendChild(mkField('ef-cat','Categoria',g.cat,null,['Materiales','Mano de obra','Fletes y Peajes','Herrajes','Ferreteria','Silicona','Perfiles de Aluminio','Roturas','Otros']));
   row3.appendChild(mkField('ef-mon','Moneda',g.mon,null,['UYU','USD']));
   row3.appendChild(mkField('ef-monto','Monto',g.monto,'number'));
   body.appendChild(row3);
@@ -2447,6 +2515,95 @@ async function saveEdit(){
   finally{btn.disabled=false;btn.textContent='Guardar cambios';}
 }
 
+
+function initEC(){
+  var dl=document.getElementById('ec-cli-list');
+  if(!dl) return;
+  dl.innerHTML='';
+  var clis=[];
+  PR.forEach(function(p){if(p.cli&&clis.indexOf(p.cli)===-1)clis.push(p.cli);});
+  VN.forEach(function(v){if(v.cli&&clis.indexOf(v.cli)===-1)clis.push(v.cli);});
+  CL.forEach(function(c){if(c.nom&&clis.indexOf(c.nom)===-1)clis.push(c.nom);});
+  clis.sort().forEach(function(c){var op=document.createElement('option');op.value=c;dl.appendChild(op);});
+}
+
+function rendEC(){
+  var cli=(document.getElementById('ec-cli').value||'').trim().toLowerCase();
+  var desde=document.getElementById('ec-desde').value;
+  var hasta=document.getElementById('ec-hasta').value;
+  if(!cli){
+    ['ec-pres','ec-ventas','ec-obras'].forEach(function(id){
+      document.getElementById(id).innerHTML='<div style="color:var(--gry);font-size:13px">Selecciona un cliente para ver su estado de cuenta.</div>';
+    });
+    document.getElementById('ec-tot-fac').textContent='-';
+    document.getElementById('ec-tot-cob').textContent='-';
+    document.getElementById('ec-tot-pen').textContent='-';
+    return;
+  }
+
+  function matchFecha(f){
+    if(!f) return true;
+    var p=f.split('/');if(p.length!==3) return true;
+    var anio=parseInt(p[2]);if(anio<100)anio+=2000;
+    var d=new Date(anio,parseInt(p[1])-1,parseInt(p[0]));
+    if(desde&&d<new Date(desde)) return false;
+    if(hasta&&d>new Date(hasta)) return false;
+    return true;
+  }
+
+  // Presupuestos
+  var pres=PR.filter(function(p){return p.cli.toLowerCase().indexOf(cli)!==-1&&matchFecha(p.fecha);});
+  var totFac=pres.filter(function(p){return p.est==='Aprobado'||p.est==='Ganada';})
+    .reduce(function(s,p){return s+(p.mon==='USD'?p.precio:p.precio/TC);},0);
+
+  // Ventas
+  var vens=VN.filter(function(v){return v.cli.toLowerCase().indexOf(cli)!==-1&&matchFecha(v.fecha);});
+  var totCob=vens.filter(function(v){return v.est==='Cobrado';})
+    .reduce(function(s,v){return s+(v.mon==='USD'?v.monto:v.monto/TC);},0);
+  var totPen=vens.filter(function(v){return v.est==='Pendiente';})
+    .reduce(function(s,v){return s+(v.mon==='USD'?v.monto:v.monto/TC);},0);
+
+  document.getElementById('ec-tot-fac').textContent='$'+Math.round(totFac).toLocaleString();
+  document.getElementById('ec-tot-cob').textContent='$'+Math.round(totCob).toLocaleString();
+  document.getElementById('ec-tot-pen').textContent='$'+Math.round(totPen).toLocaleString();
+
+  // Render presupuestos
+  var ph='';
+  if(pres.length){
+    ph='<table><tr><th>N</th><th>Fecha</th><th>Estado</th><th>Categoria</th><th style="text-align:right">Precio</th></tr>';
+    pres.forEach(function(p){
+      ph+='<tr><td style="font-size:11px;color:var(--gry)">'+p.nro+'</td><td>'+p.fecha+'</td><td>'+bdg(p.est)+'</td><td style="font-size:12px">'+(p.categ||'-')+'</td><td style="text-align:right;font-family:var(--serif)">'+p.mon+' $'+p.precio.toLocaleString()+'</td></tr>';
+    });
+    ph+='</table>';
+  } else { ph='<div style="color:var(--gry);font-size:13px">Sin presupuestos</div>'; }
+  document.getElementById('ec-pres').innerHTML=ph;
+
+  // Render ventas
+  var vh='';
+  if(vens.length){
+    vh='<table><tr><th>Fecha</th><th>Obra</th><th>Tipo</th><th>Estado</th><th>Mon</th><th style="text-align:right">Monto</th><th style="text-align:right">Equiv USD</th></tr>';
+    vens.slice().reverse().forEach(function(v){
+      var eq=v.mon==='USD'?v.monto:Math.round(v.monto/TC);
+      vh+='<tr><td>'+v.fecha+'</td><td style="font-size:11px;color:var(--gry)">'+v.obra+'</td><td style="font-size:12px">'+v.tipo+'</td><td>'+bdg(v.est)+'</td><td style="font-size:11px">'+v.mon+'</td><td style="text-align:right;font-family:var(--serif)">$'+v.monto.toLocaleString()+'</td><td style="text-align:right;font-family:var(--serif);color:var(--sage-dkr)">$'+eq.toLocaleString()+'</td></tr>';
+    });
+    vh+='</table>';
+  } else { vh='<div style="color:var(--gry);font-size:13px">Sin cobros registrados</div>'; }
+  document.getElementById('ec-ventas').innerHTML=vh;
+
+  // Render obras
+  var obs=OB.filter(function(o){return o.cli.toLowerCase().indexOf(cli)!==-1;});
+  var oh='';
+  if(obs.length){
+    oh='<table><tr><th>Codigo</th><th>Estado</th><th>Estado operativo</th><th style="text-align:right">Precio</th><th style="text-align:right">Cobrado</th><th style="text-align:right">Pendiente</th></tr>';
+    obs.forEach(function(o){
+      var pend=Math.max(0,o.precio-o.equiv);
+      oh+='<tr><td style="font-weight:500">'+o.cod+'</td><td>'+bdg(o.est)+'</td><td style="font-size:12px;color:var(--gry)">'+o.estOp+'</td><td style="text-align:right;font-family:var(--serif)">$'+Math.round(o.precio).toLocaleString()+'</td><td style="text-align:right;font-family:var(--serif);color:var(--sage-dkr)">$'+Math.round(o.equiv).toLocaleString()+'</td><td style="text-align:right;font-family:var(--serif);color:var(--rojo)">$'+Math.round(pend).toLocaleString()+'</td></tr>';
+    });
+    oh+='</table>';
+  } else { oh='<div style="color:var(--gry);font-size:13px">Sin obras asociadas</div>'; }
+  document.getElementById('ec-obras').innerHTML=oh;
+}
+
 function saveCfg(){
   TC=parseFloat(document.getElementById('tc').value)||43;
   PE=parseFloat(document.getElementById('pesp').value)||3500;
@@ -2455,12 +2612,13 @@ function saveCfg(){
 
 function go(id,btn){
   if(id==='resultados') setTimeout(function(){rendResultados();},50);
+  if(id==='estadocuenta') setTimeout(function(){initEC();},50);
   var scs=document.querySelectorAll('.sc');
   for(var i=0;i<scs.length;i++)scs[i].classList.remove('on');
   var nbs=document.querySelectorAll('.nb');
   for(var i=0;i<nbs.length;i++)nbs[i].classList.remove('on');
   document.getElementById('sc-'+id).classList.add('on');
-  var tt={dash:'Dashboard',cot:'Nueva cotizacion',pres:'Presupuestos',obras:'Obras',ventas:'Ventas',gastos:'Gastos',costos:'Costos',clientes:'Clientes',impuestos:'Impuestos',resultados:'Estado de resultados',proveedores:'Proveedores'};
+  var tt={dash:'Dashboard',cot:'Nueva cotizacion',pres:'Presupuestos',obras:'Obras',ventas:'Ventas',gastos:'Gastos',costos:'Costos',clientes:'Clientes',impuestos:'Impuestos',resultados:'Estado de resultados',proveedores:'Proveedores',estadocuenta:'Estado de cuenta'};
   document.getElementById('pt').textContent=tt[id]||id;
   if(btn)btn.classList.add('on');
 }
