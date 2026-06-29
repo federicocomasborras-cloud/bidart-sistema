@@ -260,8 +260,13 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
           <div class="fg"><label class="fl">Categoria de trabajo</label>
             <select id="ccateg">
               <option value="">-- Seleccionar --</option>
-              <option>Mampara</option><option>Espejo</option><option>Vidrio</option>
-              <option>DVH</option><option>Cerramiento</option><option>Reparacion</option><option>Otro</option>
+              <option>Obra nueva</option>
+              <option>Remodelacion</option>
+              <option>Reparacion</option>
+              <option>Reposicion / Rotura</option>
+              <option>Proyecto arquitectonico</option>
+              <option>Mantenimiento</option>
+              <option>Otro</option>
             </select>
           </div>
           <div class="fg"><label class="fl">Origen del cliente</label>
@@ -679,7 +684,10 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
           <div class="fg"><label class="fl">Condiciones</label><input type="text" id="pvcond" placeholder="Ej: 10% admin, 30 dias"></div>
           <div class="fg"><label class="fl"> </label><button class="btn btn-p" style="height:41px" onclick="guardarProv()">Guardar</button></div>
         </div>
-        <div style="font-size:11px;color:var(--gry);margin-top:8px">Los gastos asociados a un proveedor se filtran automaticamente en Resultados.</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+          <div style="font-size:11px;color:var(--gry)">Los gastos asociados a un proveedor se filtran automaticamente en Resultados.</div>
+          <button class="btn btn-s" onclick="cargarProvIniciales()" style="font-size:11px;white-space:nowrap">Cargar proveedores iniciales</button>
+        </div>
       </div>
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
@@ -1861,7 +1869,7 @@ async function guardarPres(silent){
         (document.getElementById('corigen')?document.getElementById('corigen').value:'')
       ]]})});
     if(!presR.ok){var pt=await presR.text();throw new Error('HTTP '+presR.status+': '+pt.substring(0,100));}
-    IT=[];rendIT();await loadPR();
+    IT=[];FOTOS=[];rendIT();rendFotos();await loadPR();
     toast('Presupuesto guardado OK');
     if(!silent) go('pres');
   }catch(e){toast('Error: '+e.message);}
@@ -1888,7 +1896,23 @@ async function genPDF(){
   var html='<!DOCTYPE html><html><head><title>'+nro+'</title><style>*{font-family:Georgia,serif}body{padding:40px;color:#1A1A18}h1{font-size:32px;font-weight:400}h2{font-size:15px;font-weight:400;color:#6B7068;margin:6px 0 28px}table{width:100%;border-collapse:collapse}th{background:#1A1A18;color:#fff;padding:10px;text-align:left;font-weight:400;font-size:12px}td{padding:10px;border-bottom:1px solid #E8EDE8}.tt{display:flex;justify-content:space-between;background:#1A1A18;color:#fff;padding:16px 20px;margin-top:20px;border-radius:8px}.ta{font-size:26px}</style></head><body>';
   html+='<h1>Bidart</h1><h2>'+nro+' - '+cli+' - '+fecha+'</h2>';
   html+='<table><tr><th>Tipo</th><th>Ambiente</th><th>Cant</th><th>Ancho</th><th>Alto</th><th>m2</th><th>Costo USD</th><th>Precio USD</th></tr>'+rows+'</table>';
-  html+='<div class="tt"><span>TOTAL</span><span class="ta">'+tot+'</span></div></body></html>';
+  html+='<div class="tt"><span>TOTAL</span><span class="ta">'+tot+'</span></div>';
+
+  // Fotos de trabajos anteriores
+  var fotosConImg=FOTOS.filter(function(f){return f.dataUrl;});
+  if(fotosConImg.length){
+    html+='<div style="margin-top:32px"><h3 style="font-weight:400;font-size:18px;margin-bottom:16px;color:#1A1A18;border-bottom:1px solid #E8EDE8;padding-bottom:8px">Trabajos anteriores</h3>';
+    html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">';
+    for(var fi=0;fi<fotosConImg.length;fi++){
+      var fo=fotosConImg[fi];
+      html+='<div style="break-inside:avoid"><img src="'+fo.dataUrl+'" style="width:100%;height:160px;object-fit:cover;border-radius:6px;display:block">';
+      if(fo.desc) html+='<div style="font-size:11px;color:#6B7068;margin-top:6px;text-align:center">'+fo.desc+'</div>';
+      html+='</div>';
+    }
+    html+='</div></div>';
+  }
+
+  html+='</body></html>';
   win.document.write(html);win.document.close();
   setTimeout(function(){win.print();},500);
 }
@@ -2602,6 +2626,113 @@ function rendEC(){
     oh+='</table>';
   } else { oh='<div style="color:var(--gry);font-size:13px">Sin obras asociadas</div>'; }
   document.getElementById('ec-obras').innerHTML=oh;
+}
+
+async function cargarProvIniciales(){
+  var iniciales=[
+    ['Vicry','','','','10% administracion'],
+    ['Adler','','','',''],
+    ['Abasur','','','',''],
+    ['Blendir','','','',''],
+    ['Ontil','','','',''],
+    ['Serolux','','','','']
+  ];
+  try{
+    await ensureProvSheet();
+    var hoy=new Date().toLocaleDateString('es-UY');
+    var agregados=0;
+    for(var i=0;i<iniciales.length;i++){
+      var nom=iniciales[i][0];
+      var existe=PROV.some(function(p){return p.nom.toLowerCase()===nom.toLowerCase();});
+      if(!existe){
+        await apiAdd('🛒 Proveedores',[nom,iniciales[i][1],iniciales[i][2],iniciales[i][3],iniciales[i][4],hoy]);
+        agregados++;
+      }
+    }
+    await loadPROV();
+    if(agregados>0){
+      toast(agregados+' proveedores cargados OK');
+    } else {
+      toast('Todos los proveedores ya estaban registrados');
+    }
+  }catch(e){toast('Error: '+e.message);}
+}
+
+
+var FOTOS = []; // [{dataUrl, desc}]
+
+function addFotoSlot(){
+  if(FOTOS.length >= 6){ toast('Maximo 6 fotos por cotizacion'); return; }
+  var idx = FOTOS.length;
+  FOTOS.push({dataUrl:'', desc:''});
+  rendFotos();
+  // Trigger file input for this slot
+  document.getElementById('foto-inp-'+idx).click();
+}
+
+function rendFotos(){
+  var grid = document.getElementById('foto-grid');
+  grid.innerHTML = '';
+  for(var i=0; i<FOTOS.length; i++){
+    var f = FOTOS[i];
+    var div = document.createElement('div');
+    div.style.cssText = 'border:0.5px solid var(--gry-lt);border-radius:8px;overflow:hidden;display:flex;flex-direction:column';
+
+    if(f.dataUrl){
+      var img = document.createElement('img');
+      img.src = f.dataUrl;
+      img.style.cssText = 'width:100%;height:140px;object-fit:cover;display:block';
+      div.appendChild(img);
+    } else {
+      var ph = document.createElement('div');
+      ph.style.cssText = 'width:100%;height:140px;background:var(--sage-pl);display:flex;align-items:center;justify-content:center;color:var(--gry);font-size:12px;cursor:pointer';
+      ph.textContent = 'Clic para cargar foto';
+      ph.onclick = (function(ii){ return function(){ document.getElementById('foto-inp-'+ii).click(); }; })(i);
+      div.appendChild(ph);
+    }
+
+    // File input (hidden)
+    var inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*';
+    inp.id = 'foto-inp-'+i;
+    inp.style.display = 'none';
+    inp.onchange = (function(ii){ return function(){
+      var file = this.files[0];
+      if(!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e){
+        FOTOS[ii].dataUrl = e.target.result;
+        rendFotos();
+      };
+      reader.readAsDataURL(file);
+    }; })(i);
+    div.appendChild(inp);
+
+    // Description
+    var desc = document.createElement('input');
+    desc.type = 'text';
+    desc.placeholder = 'Descripcion (ej: Mampara bano)';
+    desc.value = f.desc;
+    desc.style.cssText = 'border:none;border-top:0.5px solid var(--gry-lt);border-radius:0;font-size:12px;padding:8px 10px';
+    desc.oninput = (function(ii){ return function(){ FOTOS[ii].desc = this.value; }; })(i);
+    div.appendChild(desc);
+
+    // Remove button
+    var rem = document.createElement('button');
+    rem.className = 'btn';
+    rem.textContent = 'x Quitar';
+    rem.style.cssText = 'border-radius:0;border-top:0.5px solid var(--gry-lt);font-size:11px;color:var(--rojo);border-left:none;border-right:none;border-bottom:none';
+    rem.onclick = (function(ii){ return function(){
+      FOTOS.splice(ii, 1);
+      rendFotos();
+    }; })(i);
+    div.appendChild(rem);
+
+    grid.appendChild(div);
+  }
+
+  var addBtn = document.getElementById('btn-add-foto');
+  if(addBtn) addBtn.style.display = FOTOS.length >= 6 ? 'none' : 'inline-flex';
 }
 
 function saveCfg(){
