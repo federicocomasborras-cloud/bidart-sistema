@@ -317,18 +317,6 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
           <button class="btn btn-p" onclick="genPDF()">Generar PDF</button>
         </div>
       </div>
-
-      <div class="card">
-        <div style="font-family:var(--serif);font-size:16px;margin-bottom:6px">Fotos de trabajos anteriores</div>
-        <div style="font-size:12px;color:var(--gry);margin-bottom:14px">Hasta 6 fotos que apareceran al final del PDF. Opcional.</div>
-        <div id="foto-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px"></div>
-        <label style="display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:6px;font-size:12px;font-family:var(--sans);cursor:pointer;border:1px solid var(--gry-lt);background:var(--wht);color:var(--blk)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Agregar foto
-          <input type="file" accept="image/*" multiple style="display:none" onchange="handleFotoUpload(this)">
-        </label>
-        <div style="font-size:11px;color:var(--gry);margin-top:8px">Podes seleccionar varias fotos a la vez (maximo 6 en total).</div>
-      </div>
     </div>
 
     <div class="sc" id="sc-pres">
@@ -1892,41 +1880,177 @@ async function genPDF(){
   var itemsSnapshot=JSON.parse(JSON.stringify(IT));
   await guardarPres(true);
   var cli=document.getElementById('cc').value||'Cliente';
+  var ubi=document.getElementById('cu').value||'';
   var nro=document.getElementById('cn').value;
+  var ven=document.getElementById('cv').value||'Gustavo Bidart';
   var tot=document.getElementById('tot').textContent;
+  var fecha=new Date().toLocaleDateString('es-UY');
+  var valido=document.getElementById('cvalido')?document.getElementById('cvalido').value:'';
+  var validoFmt=valido?valido.split('-').reverse().join('/'):'-';
   var win=window.open('','_blank');
+
+  // Build items rows
   var rows='';
+  var subtotal=0;
+  var rowNum=0;
   for(var i=0;i<itemsSnapshot.length;i++){
     var it=itemsSnapshot[i];
-    var m2=(it.cant*(it.ancho||0)*(it.alto||0)).toFixed(2);
-    var costoStr=it.costo>0?'$'+it.costo.toFixed(2):'-';
-    var precioStr=it.precio>0?'$'+it.precio.toFixed(2):'-';
-    var rowStyle=it.auto?'style="background:#F0F8F0;color:#5A7A59;font-style:italic"':'';
-    rows+='<tr '+rowStyle+'><td>'+it.tipo+'</td><td>'+it.amb+'</td><td>'+it.cant+'</td><td>'+(it.ancho||'-')+'</td><td>'+(it.alto||'-')+'</td><td>'+m2+'</td><td style="text-align:right">'+costoStr+'</td><td style="text-align:right;font-weight:bold">'+precioStr+'</td></tr>';
+    if(it.auto) continue;
+    rowNum++;
+    var pr=it.precio||0;
+    subtotal+=pr;
+    var bg=rowNum%2===0?'#F8F8F6':'#FFFFFF';
+    rows+='<tr style="background:'+bg+'">'
+      +'<td style="padding:10px 12px;text-align:center;color:#6B7068;font-size:13px">'+rowNum+'</td>'
+      +'<td style="padding:10px 12px;font-size:13px"><strong>'+it.tipo+(it.amb?' - '+it.amb:'')+'</strong>'
+      +(it.ancho&&it.alto?'<br><span style="font-size:11px;color:#6B7068">'+it.ancho+'m x '+it.alto+'m'+(it.cant>1?' x '+it.cant+' unid.':'')+'</span>':'')
+      +'</td>'
+      +'<td style="padding:10px 12px;text-align:right;font-size:13px">USD '+pr.toFixed(2)+'</td>'
+      +'<td style="padding:10px 12px;text-align:center;font-size:13px">'+(it.cant||1)+'</td>'
+      +'<td style="padding:10px 12px;text-align:right;font-size:13px;font-weight:500">USD '+pr.toFixed(2)+'</td>'
+      +'</tr>';
+    // Auto lines (borde pulido, templado)
+    for(var j=0;j<itemsSnapshot.length;j++){
+      var au=itemsSnapshot[j];
+      if(au.auto&&au.parentId===it.id){
+        rows+='<tr style="background:'+bg+'">'
+          +'<td style="padding:6px 12px"></td>'
+          +'<td style="padding:6px 12px;font-size:12px;color:#6B7068;font-style:italic">&nbsp;&nbsp;'+au.tipo+(au.desc?' - '+au.desc:'')+'</td>'
+          +'<td style="padding:6px 12px;text-align:right;font-size:12px;color:#6B7068">USD '+(au.costo||0).toFixed(2)+'</td>'
+          +'<td style="padding:6px 12px;text-align:center;font-size:12px;color:#6B7068">1</td>'
+          +'<td style="padding:6px 12px;text-align:right;font-size:12px;color:#6B7068">USD '+(au.costo||0).toFixed(2)+'</td>'
+          +'</tr>';
+      }
+    }
   }
-  var fecha=new Date().toLocaleDateString('es-UY');
-  var html='<!DOCTYPE html><html><head><title>'+nro+'</title><style>*{font-family:Georgia,serif}body{padding:40px;color:#1A1A18}h1{font-size:32px;font-weight:400}h2{font-size:15px;font-weight:400;color:#6B7068;margin:6px 0 28px}table{width:100%;border-collapse:collapse}th{background:#1A1A18;color:#fff;padding:10px;text-align:left;font-weight:400;font-size:12px}td{padding:10px;border-bottom:1px solid #E8EDE8}.tt{display:flex;justify-content:space-between;background:#1A1A18;color:#fff;padding:16px 20px;margin-top:20px;border-radius:8px}.ta{font-size:26px}</style></head><body>';
-  html+='<h1>Bidart</h1><h2>'+nro+' - '+cli+' - '+fecha+'</h2>';
-  html+='<table><tr><th>Tipo</th><th>Ambiente</th><th>Cant</th><th>Ancho</th><th>Alto</th><th>m2</th><th>Costo USD</th><th>Precio USD</th></tr>'+rows+'</table>';
-  html+='<div class="tt"><span>TOTAL</span><span class="ta">'+tot+'</span></div>';
 
-  // Fotos de trabajos anteriores
+  // Fotos
   var fotosConImg=FOTOS.filter(function(f){return f.dataUrl;});
+  var fotosHtml='';
   if(fotosConImg.length){
-    html+='<div style="margin-top:32px"><h3 style="font-weight:400;font-size:18px;margin-bottom:16px;color:#1A1A18;border-bottom:1px solid #E8EDE8;padding-bottom:8px">Trabajos anteriores</h3>';
-    html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">';
+    fotosHtml='<div style="margin-top:36px;page-break-before:auto">';
+    fotosHtml+='<h3 style="font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#C8A040;margin-bottom:14px;border-bottom:2px solid #C8A040;padding-bottom:6px">Trabajos anteriores</h3>';
+    fotosHtml+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">';
     for(var fi=0;fi<fotosConImg.length;fi++){
       var fo=fotosConImg[fi];
-      html+='<div style="break-inside:avoid"><img src="'+fo.dataUrl+'" style="width:100%;height:160px;object-fit:cover;border-radius:6px;display:block">';
-      if(fo.desc) html+='<div style="font-size:11px;color:#6B7068;margin-top:6px;text-align:center">'+fo.desc+'</div>';
-      html+='</div>';
+      fotosHtml+='<div style="break-inside:avoid"><img src="'+fo.dataUrl+'" style="width:100%;height:160px;object-fit:cover;border-radius:4px;display:block">';
+      if(fo.desc) fotosHtml+='<div style="font-size:11px;color:#6B7068;margin-top:5px;text-align:center">'+fo.desc+'</div>';
+      fotosHtml+='</div>';
     }
-    html+='</div></div>';
+    fotosHtml+='</div></div>';
   }
 
-  html+='</body></html>';
-  win.document.write(html);win.document.close();
-  setTimeout(function(){win.print();},500);
+  var LOGO_URL='https://federicocomasborras-cloud.github.io/bidart-sistema/logo.png';
+
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Presupuesto '+nro+'</title>';
+  html+='<style>';
+  html+='*{margin:0;padding:0;box-sizing:border-box}';
+  html+='body{font-family:"Helvetica Neue",Arial,sans-serif;color:#1A1A18;background:#fff;font-size:13px}';
+  html+='.page{max-width:820px;margin:0 auto;padding:40px 48px}';
+  html+='.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px}';
+  html+='.logo-box{background:#1A1A18;padding:16px 20px;border-radius:4px;min-width:160px}';
+  html+='.logo-nm{color:#fff;font-size:22px;font-family:Georgia,serif;letter-spacing:.5px}';
+  html+='.logo-sub{color:#BDC9BC;font-size:9px;letter-spacing:2px;text-transform:uppercase;margin-top:3px}';
+  html+='.doc-title{text-align:right}';
+  html+='.doc-title h1{font-size:28px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#1A1A18}';
+  html+='.doc-title .nro{font-size:14px;color:#6B7068;margin-top:4px}';
+  html+='.divider{border:none;border-top:1px solid #E0E0DC;margin:20px 0}';
+  html+='.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px}';
+  html+='.info-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#C8A040;margin-bottom:6px}';
+  html+='.info-name{font-size:18px;font-family:Georgia,serif;color:#1A1A18;margin-bottom:3px}';
+  html+='.info-sub{font-size:12px;color:#6B7068}';
+  html+='.info-val{font-size:13px;color:#1A1A18}';
+  html+='.dates{text-align:right;font-size:12px;color:#6B7068;line-height:1.8}';
+  html+='.dates strong{color:#1A1A18}';
+  html+='table{width:100%;border-collapse:collapse;margin:16px 0}';
+  html+='thead tr{background:#1A1A18;color:#fff}';
+  html+='thead th{padding:11px 12px;text-align:left;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase}';
+  html+='thead th:not(:nth-child(2)){text-align:center}';
+  html+='thead th:last-child,thead th:nth-child(3){text-align:right}';
+  html+='.totals{margin-top:4px;margin-left:auto;width:320px}';
+  html+='.totals tr td{padding:7px 12px;font-size:13px}';
+  html+='.totals .tot-row{background:#1A1A18;color:#fff;font-weight:600;font-size:14px}';
+  html+='.totals .tot-row td{padding:11px 12px}';
+  html+='.footer-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:32px}';
+  html+='.footer-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#C8A040;margin-bottom:6px}';
+  html+='.sign-line{border-top:1px solid #1A1A18;margin-top:40px;padding-top:6px;font-size:11px;color:#6B7068;width:200px}';
+  html+='.contact-footer{background:#1A1A18;border-radius:4px;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;margin-top:32px}';
+  html+='.contact-footer span{color:#BDC9BC;font-size:12px}';
+  html+='.contact-footer .web{background:#BDC9BC;color:#1A1A18;padding:6px 16px;border-radius:3px;font-weight:600;font-size:12px}';
+  html+='@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}';
+  html+='</style></head><body><div class="page">';
+
+  // HEADER
+  html+='<div class="header">';
+  html+='<div class="logo-box"><div class="logo-nm">Bidart</div><div class="logo-sub">Soluciones en vidrio</div></div>';
+  html+='<div class="doc-title"><h1>Presupuesto</h1><div class="nro">NN '+nro+'</div></div>';
+  html+='</div>';
+
+  html+='<hr class="divider">';
+
+  // CLIENT INFO
+  html+='<div class="info-grid">';
+  html+='<div>';
+  html+='<div class="info-label">Cliente</div>';
+  html+='<div class="info-name">'+cli+'</div>';
+  if(ubi) html+='<div class="info-sub">'+ubi+'</div>';
+  html+='</div>';
+  html+='<div class="dates">';
+  html+='<div><strong>Fecha:</strong> '+fecha+'</div>';
+  html+='<div><strong>Valido hasta:</strong> '+validoFmt+'</div>';
+  html+='<div style="margin-top:8px"><strong>Vendedor:</strong> '+ven+'</div>';
+  html+='</div>';
+  html+='</div>';
+
+  html+='<hr class="divider">';
+
+  // ITEMS TABLE
+  html+='<table>';
+  html+='<thead><tr>';
+  html+='<th style="text-align:center;width:40px">#</th>';
+  html+='<th>Descripcion</th>';
+  html+='<th style="text-align:right;width:100px">Precio</th>';
+  html+='<th style="text-align:center;width:70px">Cant.</th>';
+  html+='<th style="text-align:right;width:100px">Total</th>';
+  html+='</tr></thead><tbody>'+rows+'</tbody></table>';
+
+  // TOTALS
+  html+='<table class="totals">';
+  html+='<tr><td style="color:#6B7068">Subtotal</td><td style="text-align:right">USD '+subtotal.toFixed(2)+'</td></tr>';
+  html+='<tr class="tot-row"><td>TOTAL</td><td style="text-align:right">USD '+subtotal.toFixed(2)+'</td></tr>';
+  html+='</table>';
+
+  // FOOTER SECTIONS
+  html+='<div class="footer-grid">';
+  html+='<div>';
+  html+='<div class="footer-label">Condiciones de pago</div>';
+  html+='<div class="info-val">Segun acuerdo con el cliente.</div>';
+  html+='<br>';
+  html+='<div class="footer-label">Firma</div>';
+  html+='<div class="sign-line">'+ven+'</div>';
+  html+='</div>';
+  html+='<div>';
+  html+='<div class="footer-label">Datos de contacto</div>';
+  html+='<div class="info-val">gustavobidart@gmail.com</div>';
+  html+='<div class="info-val" style="margin-top:3px">www.bidart.com.uy</div>';
+  html+='</div>';
+  html+='</div>';
+
+  // FOTOS
+  html+=fotosHtml;
+
+  // CONTACT BAR
+  html+='<div class="contact-footer">';
+  html+='<span>gustavobidart@gmail.com</span>';
+  html+='<span>@bidartvidrios</span>';
+  html+='<span class="web">www.bidart.com.uy</span>';
+  html+='</div>';
+
+  html+='</div></body></html>';
+
+  win.document.write(html);
+  win.document.close();
+  setTimeout(function(){win.print();},600);
 }
 
 function setImpTab(tab){
@@ -2671,50 +2795,69 @@ async function cargarProvIniciales(){
 }
 
 
-var FOTOS = [];
+var FOTOS = []; // [{dataUrl, desc}]
 
-function handleFotoUpload(input){
-  var files = Array.from(input.files);
-  var remaining = 6 - FOTOS.length;
-  if(remaining <= 0){ toast('Maximo 6 fotos'); return; }
-  files = files.slice(0, remaining);
-  var loaded = 0;
-  files.forEach(function(file){
-    var reader = new FileReader();
-    reader.onload = function(e){
-      FOTOS.push({dataUrl: e.target.result, desc: ''});
-      loaded++;
-      if(loaded === files.length) rendFotos();
-    };
-    reader.readAsDataURL(file);
-  });
-  input.value = '';
+function addFotoSlot(){
+  if(FOTOS.length >= 6){ toast('Maximo 6 fotos por cotizacion'); return; }
+  var idx = FOTOS.length;
+  FOTOS.push({dataUrl:'', desc:''});
+  rendFotos();
+  // Trigger file input for this slot
+  document.getElementById('foto-inp-'+idx).click();
 }
 
 function rendFotos(){
   var grid = document.getElementById('foto-grid');
-  if(!grid) return;
   grid.innerHTML = '';
-  FOTOS.forEach(function(f, i){
+  for(var i=0; i<FOTOS.length; i++){
+    var f = FOTOS[i];
     var div = document.createElement('div');
     div.style.cssText = 'border:0.5px solid var(--gry-lt);border-radius:8px;overflow:hidden;display:flex;flex-direction:column';
 
-    var img = document.createElement('img');
-    img.src = f.dataUrl;
-    img.style.cssText = 'width:100%;height:140px;object-fit:cover;display:block';
-    div.appendChild(img);
+    if(f.dataUrl){
+      var img = document.createElement('img');
+      img.src = f.dataUrl;
+      img.style.cssText = 'width:100%;height:140px;object-fit:cover;display:block';
+      div.appendChild(img);
+    } else {
+      var ph = document.createElement('div');
+      ph.style.cssText = 'width:100%;height:140px;background:var(--sage-pl);display:flex;align-items:center;justify-content:center;color:var(--gry);font-size:12px;cursor:pointer';
+      ph.textContent = 'Clic para cargar foto';
+      ph.onclick = (function(ii){ return function(){ document.getElementById('foto-inp-'+ii).click(); }; })(i);
+      div.appendChild(ph);
+    }
 
+    // File input (hidden)
+    var inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*';
+    inp.id = 'foto-inp-'+i;
+    inp.style.display = 'none';
+    inp.onchange = (function(ii){ return function(){
+      var file = this.files[0];
+      if(!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e){
+        FOTOS[ii].dataUrl = e.target.result;
+        rendFotos();
+      };
+      reader.readAsDataURL(file);
+    }; })(i);
+    div.appendChild(inp);
+
+    // Description
     var desc = document.createElement('input');
     desc.type = 'text';
-    desc.placeholder = 'Descripcion del trabajo';
+    desc.placeholder = 'Descripcion (ej: Mampara bano)';
     desc.value = f.desc;
-    desc.style.cssText = 'border:none;border-top:0.5px solid var(--gry-lt);border-radius:0;font-size:12px;padding:8px 10px;width:100%';
+    desc.style.cssText = 'border:none;border-top:0.5px solid var(--gry-lt);border-radius:0;font-size:12px;padding:8px 10px';
     desc.oninput = (function(ii){ return function(){ FOTOS[ii].desc = this.value; }; })(i);
     div.appendChild(desc);
 
+    // Remove button
     var rem = document.createElement('button');
+    rem.className = 'btn';
     rem.textContent = 'x Quitar';
-    rem.style.cssText = 'border:none;border-top:0.5px solid var(--gry-lt);background:var(--wht);font-size:11px;color:var(--rojo);padding:6px;cursor:pointer;font-family:var(--sans)';
+    rem.style.cssText = 'border-radius:0;border-top:0.5px solid var(--gry-lt);font-size:11px;color:var(--rojo);border-left:none;border-right:none;border-bottom:none';
     rem.onclick = (function(ii){ return function(){
       FOTOS.splice(ii, 1);
       rendFotos();
@@ -2722,7 +2865,10 @@ function rendFotos(){
     div.appendChild(rem);
 
     grid.appendChild(div);
-  });
+  }
+
+  var addBtn = document.getElementById('btn-add-foto');
+  if(addBtn) addBtn.style.display = FOTOS.length >= 6 ? 'none' : 'inline-flex';
 }
 
 function saveCfg(){
