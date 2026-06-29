@@ -317,6 +317,18 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
           <button class="btn btn-p" onclick="genPDF()">Generar PDF</button>
         </div>
       </div>
+
+      <div class="card">
+        <div style="font-family:var(--serif);font-size:16px;margin-bottom:6px">Fotos de trabajos anteriores</div>
+        <div style="font-size:12px;color:var(--gry);margin-bottom:14px">Hasta 6 fotos que apareceran al final del PDF. Opcional.</div>
+        <div id="foto-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px"></div>
+        <label style="display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:6px;font-size:12px;font-family:var(--sans);cursor:pointer;border:1px solid var(--gry-lt);background:var(--wht);color:var(--blk)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agregar foto
+          <input type="file" accept="image/*" multiple style="display:none" onchange="handleFotoUpload(this)">
+        </label>
+        <div style="font-size:11px;color:var(--gry);margin-top:8px">Podes seleccionar varias fotos a la vez (maximo 6 en total).</div>
+      </div>
     </div>
 
     <div class="sc" id="sc-pres">
@@ -2659,69 +2671,50 @@ async function cargarProvIniciales(){
 }
 
 
-var FOTOS = []; // [{dataUrl, desc}]
+var FOTOS = [];
 
-function addFotoSlot(){
-  if(FOTOS.length >= 6){ toast('Maximo 6 fotos por cotizacion'); return; }
-  var idx = FOTOS.length;
-  FOTOS.push({dataUrl:'', desc:''});
-  rendFotos();
-  // Trigger file input for this slot
-  document.getElementById('foto-inp-'+idx).click();
+function handleFotoUpload(input){
+  var files = Array.from(input.files);
+  var remaining = 6 - FOTOS.length;
+  if(remaining <= 0){ toast('Maximo 6 fotos'); return; }
+  files = files.slice(0, remaining);
+  var loaded = 0;
+  files.forEach(function(file){
+    var reader = new FileReader();
+    reader.onload = function(e){
+      FOTOS.push({dataUrl: e.target.result, desc: ''});
+      loaded++;
+      if(loaded === files.length) rendFotos();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
 }
 
 function rendFotos(){
   var grid = document.getElementById('foto-grid');
+  if(!grid) return;
   grid.innerHTML = '';
-  for(var i=0; i<FOTOS.length; i++){
-    var f = FOTOS[i];
+  FOTOS.forEach(function(f, i){
     var div = document.createElement('div');
     div.style.cssText = 'border:0.5px solid var(--gry-lt);border-radius:8px;overflow:hidden;display:flex;flex-direction:column';
 
-    if(f.dataUrl){
-      var img = document.createElement('img');
-      img.src = f.dataUrl;
-      img.style.cssText = 'width:100%;height:140px;object-fit:cover;display:block';
-      div.appendChild(img);
-    } else {
-      var ph = document.createElement('div');
-      ph.style.cssText = 'width:100%;height:140px;background:var(--sage-pl);display:flex;align-items:center;justify-content:center;color:var(--gry);font-size:12px;cursor:pointer';
-      ph.textContent = 'Clic para cargar foto';
-      ph.onclick = (function(ii){ return function(){ document.getElementById('foto-inp-'+ii).click(); }; })(i);
-      div.appendChild(ph);
-    }
+    var img = document.createElement('img');
+    img.src = f.dataUrl;
+    img.style.cssText = 'width:100%;height:140px;object-fit:cover;display:block';
+    div.appendChild(img);
 
-    // File input (hidden)
-    var inp = document.createElement('input');
-    inp.type = 'file'; inp.accept = 'image/*';
-    inp.id = 'foto-inp-'+i;
-    inp.style.display = 'none';
-    inp.onchange = (function(ii){ return function(){
-      var file = this.files[0];
-      if(!file) return;
-      var reader = new FileReader();
-      reader.onload = function(e){
-        FOTOS[ii].dataUrl = e.target.result;
-        rendFotos();
-      };
-      reader.readAsDataURL(file);
-    }; })(i);
-    div.appendChild(inp);
-
-    // Description
     var desc = document.createElement('input');
     desc.type = 'text';
-    desc.placeholder = 'Descripcion (ej: Mampara bano)';
+    desc.placeholder = 'Descripcion del trabajo';
     desc.value = f.desc;
-    desc.style.cssText = 'border:none;border-top:0.5px solid var(--gry-lt);border-radius:0;font-size:12px;padding:8px 10px';
+    desc.style.cssText = 'border:none;border-top:0.5px solid var(--gry-lt);border-radius:0;font-size:12px;padding:8px 10px;width:100%';
     desc.oninput = (function(ii){ return function(){ FOTOS[ii].desc = this.value; }; })(i);
     div.appendChild(desc);
 
-    // Remove button
     var rem = document.createElement('button');
-    rem.className = 'btn';
     rem.textContent = 'x Quitar';
-    rem.style.cssText = 'border-radius:0;border-top:0.5px solid var(--gry-lt);font-size:11px;color:var(--rojo);border-left:none;border-right:none;border-bottom:none';
+    rem.style.cssText = 'border:none;border-top:0.5px solid var(--gry-lt);background:var(--wht);font-size:11px;color:var(--rojo);padding:6px;cursor:pointer;font-family:var(--sans)';
     rem.onclick = (function(ii){ return function(){
       FOTOS.splice(ii, 1);
       rendFotos();
@@ -2729,10 +2722,7 @@ function rendFotos(){
     div.appendChild(rem);
 
     grid.appendChild(div);
-  }
-
-  var addBtn = document.getElementById('btn-add-foto');
-  if(addBtn) addBtn.style.display = FOTOS.length >= 6 ? 'none' : 'inline-flex';
+  });
 }
 
 function saveCfg(){
@@ -2761,4 +2751,4 @@ function toast(msg){
 }
 </script>
 </body>
-</html> 
+</html>
