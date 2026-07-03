@@ -317,6 +317,18 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
           <button class="btn btn-p" onclick="genPDF()">Generar PDF</button>
         </div>
       </div>
+
+      <div class="card">
+        <div style="font-family:var(--serif);font-size:16px;margin-bottom:6px">Fotos de trabajos anteriores</div>
+        <div style="font-size:12px;color:var(--gry);margin-bottom:14px">Hasta 6 fotos que apareceran al final del PDF. Opcional.</div>
+        <div id="foto-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px"></div>
+        <label style="display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid var(--gry-lt);background:var(--wht);color:var(--blk);font-family:var(--sans)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agregar foto
+          <input type="file" accept="image/*" multiple style="display:none" onchange="handleFotoUpload(this)">
+        </label>
+        <span style="font-size:11px;color:var(--gry);margin-left:10px">Podes seleccionar varias a la vez (max 6).</span>
+      </div>
     </div>
 
     <div class="sc" id="sc-pres">
@@ -1842,6 +1854,8 @@ function mkDel(id){
 async function guardarPres(silent){
   var btn=document.querySelector('[onclick="guardarPres()"]');
   if(btn){btn.disabled=true;btn.textContent='Guardando...';}
+  // Reload latest presupuestos to avoid duplicate numbering
+  try{ await loadPR(); }catch(e){}
   var nro=document.getElementById('cn').value;
   var cli=document.getElementById('cc').value;
   var ubi=document.getElementById('cu').value;
@@ -2264,7 +2278,8 @@ function rendResultados(){
     var d=parseFechaGS(g.fecha);
     if(!d||d.anio!==anio) return;
     var monto=g.mon==='USD'?g.monto:g.monto/TC;
-    var esVicry=g.prov&&g.prov.toLowerCase().indexOf('vicry')!==-1;
+    var provNorm=(g.prov||'').trim().toLowerCase();
+    var esVicry=provNorm&&provNorm.indexOf('vicry')!==-1;
     if(esVicry){
       vicryMes[d.mes]+=monto;
       vicryDetalle.push({fecha:g.fecha,obra:g.obra,desc:g.desc,monto:monto,mes:d.mes});
@@ -2763,7 +2778,50 @@ function rendEC(){
 
 
 
-var FOTOS = []; // [{dataUrl, desc}]
+var FOTOS = [];
+
+function handleFotoUpload(input){
+  var files=Array.from(input.files);
+  var remaining=6-FOTOS.length;
+  if(remaining<=0){toast('Maximo 6 fotos');return;}
+  files=files.slice(0,remaining);
+  var loaded=0;
+  files.forEach(function(file){
+    var reader=new FileReader();
+    reader.onload=function(e){
+      FOTOS.push({dataUrl:e.target.result,desc:''});
+      loaded++;
+      if(loaded===files.length) rendFotos();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value='';
+}
+
+function rendFotos(){
+  var grid=document.getElementById('foto-grid');
+  if(!grid) return;
+  grid.innerHTML='';
+  FOTOS.forEach(function(f,i){
+    var div=document.createElement('div');
+    div.style.cssText='border:0.5px solid var(--gry-lt);border-radius:8px;overflow:hidden;display:flex;flex-direction:column';
+    var img=document.createElement('img');
+    img.src=f.dataUrl;
+    img.style.cssText='width:100%;height:140px;object-fit:cover;display:block';
+    div.appendChild(img);
+    var desc=document.createElement('input');
+    desc.type='text';desc.placeholder='Descripcion del trabajo';desc.value=f.desc;
+    desc.style.cssText='border:none;border-top:0.5px solid var(--gry-lt);border-radius:0;font-size:12px;padding:8px 10px;width:100%';
+    desc.oninput=(function(ii){return function(){FOTOS[ii].desc=this.value;};})(i);
+    div.appendChild(desc);
+    var rem=document.createElement('button');
+    rem.textContent='x Quitar';
+    rem.style.cssText='border:none;border-top:0.5px solid var(--gry-lt);background:var(--wht);font-size:11px;color:var(--rojo);padding:6px;cursor:pointer;font-family:var(--sans);width:100%';
+    rem.onclick=(function(ii){return function(){FOTOS.splice(ii,1);rendFotos();};})(i);
+    div.appendChild(rem);
+    grid.appendChild(div);
+  });
+} // [{dataUrl, desc}]
 
 function addFotoSlot(){
   if(FOTOS.length >= 6){ toast('Maximo 6 fotos por cotizacion'); return; }
