@@ -1378,13 +1378,45 @@ function rendOB(){
     h+='<div class="om"><div class="omv" style="color:'+rc+'">$'+Math.round(o.res).toLocaleString()+'</div><div class="oml">Resultado</div></div>';
     h+='<div class="om"><div class="omv">'+(o.equiv>0?Math.round(o.margen*100)+'%':'-')+'</div><div class="oml">Margen</div></div>';
     h+='</div><div class="pg"><div class="pgf" style="width:'+pct+'%"></div></div>';
-    h+='<div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">';
-    if(o.est==='Finalizada'){
-      h+='<button class="btn" data-row="'+o.rowIdx+'" data-act="curso" style="font-size:11px;color:var(--ambar)">Marcar En curso</button>';
-    }else{
-      h+='<button class="btn btn-p" data-row="'+o.rowIdx+'" data-act="fin" style="font-size:11px">Marcar Finalizada</button>';
+    // Gastos asociados a esta obra
+    var gastosObra=GS.filter(function(g){return g.obra&&g.obra.trim()===o.cod.trim();});
+    if(gastosObra.length){
+      h+='<div style="margin-top:12px;border-top:0.5px solid var(--gry-lt);padding-top:10px">';
+      h+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gry);margin-bottom:8px">Gastos registrados</div>';
+      var gastoCats={};
+      gastosObra.forEach(function(g){
+        var k=g.cat||'Otros';
+        var m=g.mon==='USD'?g.monto:g.monto/TC;
+        gastoCats[k]=(gastoCats[k]||0)+m;
+      });
+      h+='<div style="display:flex;flex-wrap:wrap;gap:6px">';
+      Object.keys(gastoCats).forEach(function(k){
+        h+='<div style="background:var(--sage-pl);border-radius:6px;padding:4px 10px;font-size:11px">'
+          +'<span style="color:var(--gry)">'+k+'</span> '
+          +'<span style="font-family:var(--serif);font-weight:500">$'+Math.round(gastoCats[k]).toLocaleString()+'</span>'
+          +'</div>';
+      });
+      var totalGasto=gastosObra.reduce(function(s,g){return s+(g.mon==='USD'?g.monto:g.monto/TC);},0);
+      h+='</div>';
+      h+='<div style="font-size:12px;margin-top:8px;color:var(--gry)">Total gastos: <strong style="color:var(--blk)">USD $'+Math.round(totalGasto).toLocaleString()+'</strong> | '+gastosObra.length+' registro(s)</div>';
+      h+='</div>';
     }
-    h+='</div></div>';
+    h+='<div style="margin-top:12px;display:flex;gap:8px;align-items:center;justify-content:space-between">';
+    h+='<div style="display:flex;align-items:center;gap:6px">';
+    h+='<span style="font-size:10px;color:var(--gry);text-transform:uppercase;letter-spacing:1px">Estado op.:</span>';
+    var opStates=["Pendiente de medicion","Medido","Pendiente de compra","En produccion","Listo para instalar","Instalado","Pendiente de cobro","Cerrado"];
+    h+='<select data-row="'+o.rowIdx+'" data-type="op" style="font-size:12px;padding:3px 8px;border:0.5px solid var(--gry-lt);border-radius:6px">';
+    for(var k=0;k<opStates.length;k++){
+      h+='<option'+(o.estOp===opStates[k]?' selected':'')+'>'+opStates[k]+'</option>';
+    }
+    h+='</select></div>';
+    h+='<div style="display:flex;gap:6px">';
+    if(o.est==="Finalizada"){
+      h+='<button class="btn" data-row="'+o.rowIdx+'" data-act="curso" style="font-size:11px;color:var(--ambar)">Reactivar</button>';
+    }else{
+      h+='<button class="btn btn-p" data-row="'+o.rowIdx+'" data-act="fin" style="font-size:11px">Finalizar</button>';
+    }
+    h+='</div></div></div>';
   }
   div.innerHTML=h;
   // Bind buttons (avoid inline onclick due to nested quotes)
@@ -1394,6 +1426,11 @@ function rendOB(){
     var rowIdx=parseInt(b.getAttribute('data-row'));
     var act=b.getAttribute('data-act');
     b.onclick=(function(ri,a){return function(){marcarObraEstado(ri,a==='fin'?'Finalizada':'');};})(rowIdx,act);
+  }
+  var sels=div.querySelectorAll('select[data-type="op"]');
+  for(var i=0;i<sels.length;i++){
+    var sel=sels[i];
+    sel.onchange=(function(ri){return function(){marcarObraEstadoOp(ri,this.value);};})(parseInt(sel.getAttribute('data-row')));
   }
 }
 
@@ -3026,6 +3063,61 @@ function rendAlertasCobro(){
       +'</div>';
   });
   el.innerHTML=h;
+}
+
+
+function presupuestosSinSeguimiento(){
+  var hoy=new Date();
+  return PR.filter(function(p){
+    if(p.est==='Ganada'||p.est==='Aprobado'||p.est==='Rechazado'||p.est==='Perdida'||p.est==='Vencido') return false;
+    if(!p.fecha) return false;
+    var pts=p.fecha.split('/');
+    if(pts.length!==3) return false;
+    var anio=parseInt(pts[2]);if(anio<100)anio+=2000;
+    var df=new Date(anio,parseInt(pts[1])-1,parseInt(pts[0]));
+    var dias=Math.round((hoy-df)/(1000*60*60*24));
+    return dias>=7;
+  }).map(function(p){
+    var pts=p.fecha.split('/');
+    var anio=parseInt(pts[2]);if(anio<100)anio+=2000;
+    var df=new Date(anio,parseInt(pts[1])-1,parseInt(pts[0]));
+    var dias=Math.round((new Date()-df)/(1000*60*60*24));
+    return {nro:p.nro,cli:p.cli,est:p.est,dias:dias,precio:p.precio,mon:p.mon};
+  }).sort(function(a,b){return b.dias-a.dias;});
+}
+
+function rendSeguimiento(){
+  var pending=presupuestosSinSeguimiento();
+  var el=document.getElementById('dash-seguimiento');
+  var cnt=document.getElementById('dash-seg-count');
+  if(!el) return;
+  if(cnt) cnt.textContent=pending.length?'('+pending.length+')':'';
+  if(!pending.length){
+    el.innerHTML='<div style="color:var(--gry);font-size:13px">Sin presupuestos pendientes de seguimiento</div>';
+    return;
+  }
+  var h='';
+  pending.slice(0,8).forEach(function(p){
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--sage-pl);border-radius:8px;border-left:3px solid var(--ambar);margin-bottom:8px">'
+      +'<div>'
+      +'<div style="font-weight:500;font-size:13px">'+p.cli+'</div>'
+      +'<div style="font-size:11px;color:var(--gry)">'+p.nro+' - '+p.est+' - hace '+p.dias+' dias</div>'
+      +'</div>'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +'<div style="font-family:var(--serif);font-size:13px">'+p.mon+' $'+Math.round(p.precio).toLocaleString()+'</div>'
+      +'<button class="btn" onclick="marcarContactado(''+p.nro+'')" style="font-size:11px;padding:4px 10px;white-space:nowrap">Contactado</button>'
+      +'</div>'
+      +'</div>';
+  });
+  if(pending.length>8) h+='<div style="font-size:12px;color:var(--gry);text-align:center;margin-top:6px">...y '+(pending.length-8)+' mas</div>';
+  el.innerHTML=h;
+}
+
+async function marcarContactado(nro){
+  // Change state to "En seguimiento" and update fecha to today so timer resets
+  await cambiarEstado(nro,'En seguimiento');
+  rendSeguimiento();
+  toast('Marcado como contactado - estado: En seguimiento');
 }
 
 function saveCfg(){
