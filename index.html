@@ -177,18 +177,18 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
     <div class="nsec">Principal</div>
     <button class="nb on" onclick="go('dash',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</button>
     <button class="nb" onclick="go('cot',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Nueva cotizacion</button>
-    <button class="nb" onclick="go('pres',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Presupuestos <span class="nbdg" id="bdg">0</span></button>
+    <button class="nb" onclick="go('pres',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Presupuestos<span class="nbdg" id="bdg">0</span></button>
     <div class="nsec">Financiero</div>
     <button class="nb" onclick="go('obras',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Obras</button>
     <button class="nb" onclick="go('ventas',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>Ventas</button>
     <button class="nb" onclick="go('gastos',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/><circle cx="12" cy="12" r="10"/></svg>Gastos</button>
-    <div class="nsec">Config</div>
-    <button class="nb" onclick="go('costos',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>Costos</button>
-    <button class="nb" onclick="go('clientes',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Clientes</button>
-    <button class="nb" onclick="go('impuestos',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Impuestos</button>
     <button class="nb" onclick="go('resultados',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Resultados</button>
     <button class="nb" onclick="go('estadocuenta',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Estado de cuenta</button>
+    <div class="nsec">Config</div>
+    <button class="nb" onclick="go('clientes',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Clientes</button>
     <button class="nb" onclick="go('proveedores',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Proveedores</button>
+    <button class="nb" onclick="go('costos',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>Costos</button>
+    <button class="nb" onclick="go('impuestos',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Impuestos</button>
   </nav>
   <div class="sb-ft"><div class="u-av" id="uav">G</div><div><div class="u-nm" id="unm">-</div><div class="u-rl">Sistema Bidart</div></div></div>
 </div>
@@ -676,18 +676,18 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
     <div class="sc" id="sc-proveedores">
       <div class="qc">
         <div style="font-family:var(--serif);font-size:16px;margin-bottom:14px">Nuevo proveedor</div>
-        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr auto;gap:10px;align-items:end">
-          <div class="fg"><label class="fl">Nombre</label><input type="text" id="pvnom" placeholder="Nombre del proveedor"></div>
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+          <div class="fg"><label class="fl">Razon social / Nombre *</label><input type="text" id="pvnom" placeholder="Nombre del proveedor"></div>
+          <div class="fg"><label class="fl">RUT</label><input type="text" id="pvrut" placeholder="21234567-8"></div>
           <div class="fg"><label class="fl">Contacto</label><input type="text" id="pvcontacto" placeholder="Nombre contacto"></div>
           <div class="fg"><label class="fl">Telefono</label><input type="text" id="pvtel" placeholder="099..."></div>
+        </div>
+        <div style="display:grid;grid-template-columns:2fr 2fr auto;gap:10px;align-items:end">
           <div class="fg"><label class="fl">Email</label><input type="text" id="pvmail" placeholder="correo@..."></div>
           <div class="fg"><label class="fl">Condiciones</label><input type="text" id="pvcond" placeholder="Ej: 10% admin, 30 dias"></div>
           <div class="fg"><label class="fl"> </label><button class="btn btn-p" style="height:41px" onclick="guardarProv()">Guardar</button></div>
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
-          <div style="font-size:11px;color:var(--gry)">Los gastos asociados a un proveedor se filtran automaticamente en Resultados.</div>
-          <button class="btn btn-s" onclick="cargarProvIniciales()" style="font-size:11px;white-space:nowrap">Cargar proveedores iniciales</button>
-        </div>
+        <div style="font-size:11px;color:var(--gry);margin-top:8px">Los gastos con un proveedor asignado se filtran automaticamente en Resultados.</div>
       </div>
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
@@ -2433,12 +2433,12 @@ function rendPROVfiltered(bus){
   if(!d.length){tab.innerHTML='<div style="text-align:center;padding:28px;color:var(--gry)">Sin proveedores registrados</div>';return;}
   var tbl=document.createElement('table');
   var hdr=tbl.insertRow();
-  ['Nombre','Contacto','Telefono','Email','Condiciones','Alta',''].forEach(function(h){
+  ['Razon social','RUT','Contacto','Telefono','Email','Condiciones','Alta',''].forEach(function(h){
     var th=document.createElement('th');th.textContent=h;hdr.appendChild(th);
   });
   d.forEach(function(p){
     var tr=tbl.insertRow();
-    [{t:p.nom,s:'font-weight:500'},{t:p.contacto||'-',s:''},{t:p.tel||'-',s:''},{t:p.mail||'-',s:'font-size:12px'},{t:p.cond||'-',s:'font-size:12px;color:var(--gry)'},{t:p.fecha||'-',s:'font-size:11px;color:var(--gry)'}].forEach(function(c){
+    [{t:p.nom,s:'font-weight:500'},{t:p.rut||'-',s:'font-size:12px;font-family:monospace'},{t:p.contacto||'-',s:''},{t:p.tel||'-',s:'font-size:12px'},{t:p.mail||'-',s:'font-size:12px'},{t:p.cond||'-',s:'font-size:12px;color:var(--gry)'},{t:p.fecha||'-',s:'font-size:11px;color:var(--gry)'}].forEach(function(c){
       var td=tr.insertCell();td.style.cssText=c.s;td.textContent=c.t;
     });
     var tdAct=tr.insertCell();
@@ -2460,7 +2460,7 @@ async function ensureProvSheet(){
   var batchUrl='https://sheets.googleapis.com/v4/spreadsheets/'+SID+':batchUpdate';
   await fetch(batchUrl,{method:'POST',headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
     body:JSON.stringify({requests:[{addSheet:{properties:{title:'🛒 Proveedores'}}}]})});
-  await apiAdd('🛒 Proveedores',['Nombre','Contacto','Telefono','Email','Condiciones','Fecha alta']);
+  await apiAdd('🛒 Proveedores',['Nombre','RUT','Contacto','Telefono','Email','Condiciones','Fecha alta']);
   var hoyP=new Date().toLocaleDateString('es-UY');
   var provIniciales=[['Vicry','','','','10% administracion',hoyP],['Adler','','','','',hoyP],['Abasur','','','','',hoyP],['Blendir','','','','',hoyP],['Ontil','','','','',hoyP]];
   for(var pi=0;pi<provIniciales.length;pi++){
@@ -2470,27 +2470,23 @@ async function ensureProvSheet(){
 
 async function guardarProv(){
   var nom=document.getElementById('pvnom').value.trim();
+  var rut=(document.getElementById('pvrut').value||'').trim();
   var contacto=document.getElementById('pvcontacto').value;
   var tel=document.getElementById('pvtel').value;
   var mail=document.getElementById('pvmail').value;
   var cond=document.getElementById('pvcond').value;
-  if(!nom){toast('Completa el nombre del proveedor');return;}
-  var existe=PROV.some(function(p){return p.nom.toLowerCase()===nom.toLowerCase();});
-  if(existe){toast('Ese proveedor ya existe');return;}
+  if(!nom){toast('Completa la razon social del proveedor');return;}
+  if(PROV.some(function(p){return p.nom.toLowerCase()===nom.toLowerCase();})){toast('Ya existe un proveedor con esa razon social');return;}
+  if(rut&&PROV.some(function(p){return p.rut&&p.rut===rut;})){toast('Ya existe un proveedor con ese RUT');return;}
   try{
     await ensureProvSheet();
     var hoy=new Date().toLocaleDateString('es-UY');
-    await apiAdd('🛒 Proveedores',[nom,contacto,tel,mail,cond,hoy]);
-    document.getElementById('pvnom').value='';
-    document.getElementById('pvcontacto').value='';
-    document.getElementById('pvtel').value='';
-    document.getElementById('pvmail').value='';
-    document.getElementById('pvcond').value='';
+    await apiAdd('🛒 Proveedores',[nom,rut,contacto,tel,mail,cond,hoy]);
+    ['pvnom','pvrut','pvcontacto','pvtel','pvmail','pvcond'].forEach(function(id){document.getElementById(id).value='';});
     await loadPROV();
     toast('Proveedor guardado OK');
   }catch(e){toast('Error: '+e.message);}
 }
-
 async function eliminarProv(pv){
   if(!confirm('Eliminar proveedor "'+pv.nom+'"?')) return;
   try{
@@ -2764,35 +2760,7 @@ function rendEC(){
   document.getElementById('ec-obras').innerHTML=oh;
 }
 
-async function cargarProvIniciales(){
-  var iniciales=[
-    ['Vicry','','','','10% administracion'],
-    ['Adler','','','',''],
-    ['Abasur','','','',''],
-    ['Blendir','','','',''],
-    ['Ontil','','','',''],
-    ['Serolux','','','','']
-  ];
-  try{
-    await ensureProvSheet();
-    var hoy=new Date().toLocaleDateString('es-UY');
-    var agregados=0;
-    for(var i=0;i<iniciales.length;i++){
-      var nom=iniciales[i][0];
-      var existe=PROV.some(function(p){return p.nom.toLowerCase()===nom.toLowerCase();});
-      if(!existe){
-        await apiAdd('🛒 Proveedores',[nom,iniciales[i][1],iniciales[i][2],iniciales[i][3],iniciales[i][4],hoy]);
-        agregados++;
-      }
-    }
-    await loadPROV();
-    if(agregados>0){
-      toast(agregados+' proveedores cargados OK');
-    } else {
-      toast('Todos los proveedores ya estaban registrados');
-    }
-  }catch(e){toast('Error: '+e.message);}
-}
+
 
 
 var FOTOS = []; // [{dataUrl, desc}]
