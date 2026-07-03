@@ -724,6 +724,37 @@ input[readonly]{background:var(--sage-pl);color:var(--gry)}
   </div>
 </div>
 
+<div id="pres-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:var(--wht);border-radius:12px;padding:24px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto">
+    <div style="font-family:var(--serif);font-size:18px;margin-bottom:18px">Editar presupuesto <span id="pem-nro" style="color:var(--gry);font-size:14px"></span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div class="fg"><label class="fl">Cliente</label><input id="pem-cli" type="text"></div>
+      <div class="fg"><label class="fl">Ubicacion</label><input id="pem-ubic" type="text"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+      <div class="fg"><label class="fl">Estado</label>
+        <select id="pem-est">
+          <option>Nuevo</option><option>Enviado</option><option>En seguimiento</option>
+          <option>Aprobado</option><option>Rechazado</option><option>Vencido</option>
+          <option>Ganada</option><option>Perdida</option><option>En espera</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Moneda</label>
+        <select id="pem-mon"><option>USD</option><option>UYU</option></select>
+      </div>
+      <div class="fg"><label class="fl">Precio</label><input id="pem-precio" type="number"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+      <div class="fg"><label class="fl">Vendedor</label><input id="pem-vend" type="text"></div>
+      <div class="fg"><label class="fl">Valido hasta</label><input id="pem-valido" type="date"></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="closePResEdit()">Cancelar</button>
+      <button class="btn btn-p" id="pem-save" onclick="savePresEdit()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <div id="cli-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9998;align-items:center;justify-content:center">
@@ -1200,7 +1231,7 @@ function rendPR(fil,bus){
   if(!d.length){tab.innerHTML='<div style="text-align:center;padding:28px;color:var(--gry)">Sin resultados</div>';return;}
   var tbl=document.createElement('table');
   var hdr=tbl.insertRow();
-  ['N','Fecha','Cliente','Estado','Mon','Precio','Cambiar estado',''].forEach(function(h){
+  ['N','Fecha','Cliente','Estado','Mon','Precio','','Cambiar estado',''].forEach(function(h){
     var th=document.createElement('th');th.textContent=h;
     if(h==='Precio')th.style.textAlign='right';
     hdr.appendChild(th);
@@ -1221,6 +1252,14 @@ function rendPR(fil,bus){
       if(c.bdg){td.innerHTML=bdg(c.bdg);}
       else{td.textContent=c.t;}
     });
+    // Edit button
+    var tdEdit=tr.insertCell();
+    var editBtn=document.createElement('button');
+    editBtn.className='btn';editBtn.textContent='Editar';
+    editBtn.style.cssText='padding:3px 8px;font-size:11px';
+    editBtn.onclick=(function(pp){return function(){abrirPresEdit(pp);};})(p);
+    tdEdit.appendChild(editBtn);
+
     var tdBtn=tr.insertCell();
     var wrap=document.createElement('div');
     wrap.style.cssText='display:flex;gap:4px;flex-wrap:nowrap';
@@ -2895,6 +2934,98 @@ function rendFotos(){
 
   var addBtn = document.getElementById('btn-add-foto');
   if(addBtn) addBtn.style.display = FOTOS.length >= 6 ? 'none' : 'inline-flex';
+}
+
+
+function abrirPresEdit(p){
+  document.getElementById('pem-nro').textContent = p.nro;
+  document.getElementById('pem-cli').value = p.cli||'';
+  document.getElementById('pem-ubic').value = p.ubic||'';
+  document.getElementById('pem-est').value = p.est||'Nuevo';
+  document.getElementById('pem-mon').value = p.mon||'USD';
+  document.getElementById('pem-precio').value = p.precio||0;
+  document.getElementById('pem-vend').value = p.vend||'';
+  // Convert dd/mm/yyyy to yyyy-mm-dd for date input
+  var vf=p.valido||'';
+  if(vf){var vp=vf.split('/');if(vp.length===3) vf=vp[2]+'-'+vp[1]+'-'+vp[0];}
+  document.getElementById('pem-valido').value = vf;
+  document.getElementById('pem-save').setAttribute('data-nro', p.nro);
+  document.getElementById('pres-edit-modal').style.display='flex';
+}
+
+function closePResEdit(){
+  document.getElementById('pres-edit-modal').style.display='none';
+}
+
+async function savePresEdit(){
+  var btn=document.getElementById('pem-save');
+  var nro=btn.getAttribute('data-nro');
+  if(!nro||btn.disabled) return;
+  btn.disabled=true;btn.textContent='Guardando...';
+  try{
+    // Find all row indices for this presupuesto
+    var rows=await apiGet('📊 Presupuestos!A11:N500');
+    var rowIdx=-1;
+    for(var i=0;i<rows.length;i++){
+      if(rows[i][0]&&rows[i][0].toString()===nro){rowIdx=i+11;break;}
+    }
+    if(rowIdx===-1){toast('Presupuesto no encontrado');return;}
+    var cli=document.getElementById('pem-cli').value;
+    var ubic=document.getElementById('pem-ubic').value;
+    var est=document.getElementById('pem-est').value;
+    var mon=document.getElementById('pem-mon').value;
+    var precio=parseFloat(document.getElementById('pem-precio').value)||0;
+    var vend=document.getElementById('pem-vend').value;
+    var vf=document.getElementById('pem-valido').value;
+    if(vf){var vp=vf.split('-');vf=vp[2]+'/'+vp[1]+'/'+vp[0];}
+    // Read existing row to preserve cols we don't edit
+    var existing=rows[rowIdx-11]||[];
+    var newRow=[existing[0]||nro, existing[1]||'', vf, cli, existing[4]||'', ubic, est, vend,
+                existing[8]||'', existing[9]||'', precio, mon, precio, existing[13]||''];
+    var url='https://sheets.googleapis.com/v4/spreadsheets/'+SID+'/values/'
+      +encodeURIComponent('📊 Presupuestos!A'+rowIdx+':N'+rowIdx)
+      +'?valueInputOption=USER_ENTERED';
+    var r=await fetch(url,{method:'PUT',
+      headers:{Authorization:'Bearer '+TOK,'Content-Type':'application/json'},
+      body:JSON.stringify({values:[newRow]})});
+    if(!r.ok){var t=await r.text();throw new Error('HTTP '+r.status+': '+t.substring(0,100));}
+    await loadPR();
+    closePResEdit();
+    toast('Presupuesto actualizado OK');
+  }catch(e){toast('Error: '+e.message);}
+  finally{btn.disabled=false;btn.textContent='Guardar cambios';}
+}
+
+
+function alertasCobro(){
+  // Obras con saldo pendiente > 0 y estado operativo = Instalado o Cerrado
+  var alertas=OB.filter(function(o){
+    var pendiente=o.precio-o.equiv;
+    return pendiente>0 && o.est!=='Finalizada' &&
+      (o.estOp==='Instalado'||o.estOp==='Pendiente de cobro'||o.estOp==='Cerrado');
+  });
+  return alertas;
+}
+
+function rendAlertasCobro(){
+  var alertas=alertasCobro();
+  var el=document.getElementById('dash-alertas-cobro');
+  if(!el) return;
+  if(!alertas.length){
+    el.innerHTML='<div style="color:var(--gry);font-size:13px">Sin saldos pendientes urgentes</div>';
+    return;
+  }
+  var h='';
+  alertas.forEach(function(o){
+    var pend=Math.round(o.precio-o.equiv);
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--rojo-bg);border-radius:8px;border-left:3px solid var(--rojo);margin-bottom:8px">'
+      +'<div><div style="font-weight:500;font-size:13px">'+o.cli+'</div>'
+      +'<div style="font-size:11px;color:var(--gry)">'+o.cod+' - '+o.estOp+'</div></div>'
+      +'<div style="text-align:right"><div style="font-family:var(--serif);font-size:16px;color:var(--rojo)">$ '+pend.toLocaleString()+' USD</div>'
+      +'<div style="font-size:10px;color:var(--gry)">pendiente</div></div>'
+      +'</div>';
+  });
+  el.innerHTML=h;
 }
 
 function saveCfg(){
